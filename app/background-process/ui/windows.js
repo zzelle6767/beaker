@@ -44,22 +44,22 @@ export function setup () {
 
 export function createWindow (url='beaker:start', {background} = {}) {
   // create window
-  var { x, y, width, height } = getWindowBounds()
-  var win = new BrowserWindow({
-    'standard-window': false, // ? what is this?
-    x, y, width, height,
-    // show: !background, TODO this isnt working
-    webPreferences: {
-      webSecurity: true,
-      nodeIntegration: false,
-      preload: path.join(app.getAppPath(), 'webview-preload.build.js'),
-      allowDisplayingInsecureContent: true,
-      allowRunningInsecureContent: false
-      // sandbox: true, TODO!
-      // contextIsolation: true TODO!
-    },
-    icon: path.join(__dirname, (process.platform === 'win32') ? './assets/img/logo.ico' : './assets/img/logo.png')
-  })
+  var win = new BrowserWindow(Object.assign(
+    getWindowBounds(),
+    {
+      // show: !background, TODO this isnt working
+      webPreferences: {
+        webSecurity: true,
+        nodeIntegration: false,
+        preload: path.join(app.getAppPath(), 'webview-preload.build.js'),
+        allowDisplayingInsecureContent: true,
+        allowRunningInsecureContent: false
+        // sandbox: true, TODO!
+        // contextIsolation: true TODO!
+      },
+      icon: path.join(__dirname, (process.platform === 'win32') ? './assets/img/logo.ico' : './assets/img/logo.png')
+    }
+  ))
   downloads.registerListener(win)
   win.loadURL(url)
   debug(`Opening ${url}`)
@@ -75,16 +75,17 @@ export function createWindow (url='beaker:start', {background} = {}) {
   }
 
   // create status-bar subwindow
-  var { x, y, width, height } = getStatusBarBounds(win)
-  win.statusBarWin = new BrowserWindow({
-    parent: win,
-    x, y, width, height,
-    show: false,
-    transparent: true,
-    frame: false,
-    focusable: false,
-    hasShadow: false
-  })
+  win.statusBarWin = new BrowserWindow(Object.assign(
+    getStatusBarBounds(win),
+    {
+      parent: win,
+      show: false,
+      transparent: true,
+      frame: false,
+      focusable: false,
+      hasShadow: false
+    }
+  ))
   win.statusBarWin.loadURL('beaker:status-bar')
 
   // register behaviors
@@ -124,7 +125,7 @@ export function createSwitcherWindow () {
   switcherWindow.loadURL('beaker:switcher')
 
   // register behaviors
-  switcherWindow.on('blur', onSwitcherSelect(switcherWindow))
+  switcherWindow.on('blur', onSwitcherBlur(switcherWindow))
   switcherWindow.on('close', (e) => {
     if (!isQuitting) {
       // only hide unless we're quitting
@@ -157,6 +158,17 @@ export function getActiveWindow () {
 }
 
 export function showSwitcherWindow () {
+  // position on the screen
+  var bounds = getCurrentDisplay().bounds
+  var width = Math.min(1000, bounds.width - 100)
+  var height = Math.min(activeWindows.length * 40, bounds.height - 100)
+  switcherWindow.setContentBounds({
+    x: bounds.x + (bounds.width - width) / 2,
+    y: bounds.y + ((bounds.height - bounds.y) / 2) - height,
+    width,
+    height
+  })
+
   // make visible
   renderSwitcher()
   switcherWindow.show()
@@ -164,7 +176,6 @@ export function showSwitcherWindow () {
 }
 
 export function toggleAlwaysOnTop (win) {
-  console.log('setting always on top', !win.isAlwaysOnTop())
   win.setAlwaysOnTop(!win.isAlwaysOnTop())
 }
 
@@ -193,27 +204,28 @@ function setStatus (win, status) {
   }
 }
 
-function getCurrentPosition (win) {
-  var position = win.getPosition()
-  var size = win.getSize()
-  return {
-    x: position[0],
-    y: position[1],
-    width: size[0],
-    height: size[1]
+function getCurrentDisplay () {
+  var display
+  var currentWindow = BrowserWindow.getFocusedWindow()
+  if (currentWindow && currentWindow !== switcherWindow) {
+    display = screen.getDisplayMatching(currentWindow.getBounds())
   }
+  if (!display) {
+    display = screen.getPrimaryDisplay()
+  }
+  return display
 }
 
 function getWindowBounds () {
-  var bounds = screen.getPrimaryDisplay().bounds
+  var bounds = getCurrentDisplay().bounds
   var width = Math.max(800, Math.min(1800, bounds.width - 50))
   var height = Math.max(600, Math.min(1200, bounds.height - 50))
-  return Object.assign({}, {
-    x: (bounds.width - width) / 2,
-    y: (bounds.height - height) / 2,
+  return {
+    x: bounds.x + (bounds.width - width) / 2,
+    y: bounds.y + (bounds.height - height) / 2,
     width,
     height
-  })
+  }
 }
 
 function getStatusBarBounds (win) {
@@ -227,31 +239,12 @@ function getStatusBarBounds (win) {
 }
 
 function renderSwitcher () {  
-  var currentWindow = BrowserWindow.getFocusedWindow()
-
   // construct info about the current state
   var processes = activeWindows
     .map(w => ({
       title: w.getTitle(),
       url: w.webContents.getURL()
     }))
-
-  // position on the screen
-  var display
-  if (currentWindow && currentWindow !== switcherWindow) {
-    display = screen.getDisplayMatching(currentWindow.getBounds())
-  }
-  if (!display) {
-    display = screen.getPrimaryDisplay()
-  }
-  var width = Math.min(1000, display.bounds.width - 100)
-  var height = Math.min(processes.length * 40, display.bounds.height - 100)
-  switcherWindow.setContentBounds({
-    x: display.bounds.x + (display.bounds.width - width) / 2,
-    y: display.bounds.y + ((display.bounds.height - display.bounds.y) / 2) - height,
-    width,
-    height
-  })
 
   // send data to the switcher
   switcherWindow.webContents.executeJavaScript(`
@@ -368,10 +361,9 @@ function onGoForward (win) {
   return () => win.webContents.goForward()
 }
 
-function onSwitcherSelect (win) {
+function onSwitcherBlur (win) {
   return () => {
     var winToFocus = activeWindows[currentWindowIndex]
-    switcherWindow.hide()
     if (winToFocus) {
       winToFocus.show()
       winToFocus.focus()
