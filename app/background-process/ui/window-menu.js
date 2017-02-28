@@ -1,5 +1,5 @@
 import { app, BrowserWindow, dialog } from 'electron'
-import { createWindow, closeWindow } from './windows'
+import { createWindow, closeWindow, toggleAlwaysOnTop } from './windows'
 
 var darwinMenu = {
   label: 'Beaker',
@@ -145,6 +145,13 @@ var windowMenu = {
   label: 'Window',
   role: 'window',
   submenu: [
+    {
+      type: 'checkbox',
+      label: 'Always on Top',
+      click: function (item, win) {
+        if (win) toggleAlwaysOnTop(win)
+      }
+    },
     {
       label: 'Minimize',
       accelerator: 'CmdOrCtrl+M',

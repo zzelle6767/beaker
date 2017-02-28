@@ -1,4 +1,4 @@
-import { app, BrowserWindow, screen, ipcMain } from 'electron'
+import { app, BrowserWindow, screen, ipcMain, Menu } from 'electron'
 import { register as registerShortcut, unregisterAll as unregisterAllShortcuts } from 'electron-localshortcut'
 import jetpack from 'fs-jetpack'
 import path from 'path'
@@ -9,7 +9,6 @@ var debug = require('debug')('beaker')
 // globals
 // =
 var userDataDir
-var stateStoreFile = 'shell-window-state.json'
 var currentWindowIndex = 0 // currently focused window
 var activeWindows = []
 var switcherWindow = null
@@ -45,7 +44,7 @@ export function setup () {
 
 export function createWindow (url='beaker:start', {background} = {}) {
   // create window
-  var { x, y, width, height } = ensureVisibleOnSomeDisplay(restoreState())
+  var { x, y, width, height } = getWindowBounds()
   var win = new BrowserWindow({
     'standard-window': false, // ? what is this?
     x, y, width, height,
@@ -158,29 +157,15 @@ export function getActiveWindow () {
 }
 
 export function showSwitcherWindow () {
-  var currentWindow = BrowserWindow.getFocusedWindow()
-
-  // position on the screen
-  var display
-  if (currentWindow && currentWindow !== switcherWindow) {
-    display = screen.getDisplayMatching(currentWindow.getBounds())
-  }
-  if (!display) {
-    display = screen.getPrimaryDisplay()
-  }
-  var width = Math.min(1000, display.bounds.width - 100)
-  var height = Math.min(activeWindows.length * 40, display.bounds.height - 100)
-  switcherWindow.setContentBounds({
-    x: display.bounds.x + (display.bounds.width - width) / 2,
-    y: display.bounds.y + ((display.bounds.height - display.bounds.y) / 2) - height,
-    width,
-    height
-  })
-
   // make visible
   renderSwitcher()
   switcherWindow.show()
   switcherWindow.focus()
+}
+
+export function toggleAlwaysOnTop (win) {
+  console.log('setting always on top', !win.isAlwaysOnTop())
+  win.setAlwaysOnTop(!win.isAlwaysOnTop())
 }
 
 // internal methods
@@ -219,25 +204,7 @@ function getCurrentPosition (win) {
   }
 }
 
-function windowWithinBounds (windowState, bounds) {
-  return windowState.x >= bounds.x &&
-    windowState.y >= bounds.y &&
-    windowState.x + windowState.width <= bounds.x + bounds.width &&
-    windowState.y + windowState.height <= bounds.y + bounds.height
-}
-
-function restoreState () {
-  var restoredState = {}
-  try {
-    restoredState = userDataDir.read(stateStoreFile, 'json')
-  } catch (err) {
-    // For some reason json can't be read (might be corrupted).
-    // No worries, we have defaults.
-  }
-  return Object.assign({}, defaultState(), restoredState)
-}
-
-function defaultState () {
+function getWindowBounds () {
   var bounds = screen.getPrimaryDisplay().bounds
   var width = Math.max(800, Math.min(1800, bounds.width - 50))
   var height = Math.max(600, Math.min(1200, bounds.height - 50))
@@ -247,16 +214,6 @@ function defaultState () {
     width,
     height
   })
-}
-
-function ensureVisibleOnSomeDisplay (windowState) {
-  var visible = screen.getAllDisplays().some(display => windowWithinBounds(windowState, display.bounds))
-  if (!visible) {
-    // Window is partially or fully not visible now.
-    // Reset it to safe defaults.
-    return defaultState(windowState)
-  }
-  return windowState
 }
 
 function getStatusBarBounds (win) {
@@ -270,11 +227,31 @@ function getStatusBarBounds (win) {
 }
 
 function renderSwitcher () {  
+  var currentWindow = BrowserWindow.getFocusedWindow()
+
   // construct info about the current state
-  var processes = activeWindows.map(w => ({
-    title: w.getTitle(),
-    url: w.webContents.getURL()
-  }))
+  var processes = activeWindows
+    .map(w => ({
+      title: w.getTitle(),
+      url: w.webContents.getURL()
+    }))
+
+  // position on the screen
+  var display
+  if (currentWindow && currentWindow !== switcherWindow) {
+    display = screen.getDisplayMatching(currentWindow.getBounds())
+  }
+  if (!display) {
+    display = screen.getPrimaryDisplay()
+  }
+  var width = Math.min(1000, display.bounds.width - 100)
+  var height = Math.min(processes.length * 40, display.bounds.height - 100)
+  switcherWindow.setContentBounds({
+    x: display.bounds.x + (display.bounds.width - width) / 2,
+    y: display.bounds.y + ((display.bounds.height - display.bounds.y) / 2) - height,
+    width,
+    height
+  })
 
   // send data to the switcher
   switcherWindow.webContents.executeJavaScript(`
@@ -289,8 +266,15 @@ function renderSwitcher () {
 
 function onFocus (win) {
   return e => {
+    // track the current window
     currentWindowIndex = activeWindows.findIndex(w => w == win)
     if (currentWindowIndex === -1) currentWindowIndex = 0
+
+    // update the app menu
+    var menu = Menu.getApplicationMenu()
+    var windowMenu = menu.items.find(m => m.label === 'Window')
+    var alwaysOnTop = windowMenu.submenu.items.find(m => m.label === 'Always on Top')
+    alwaysOnTop.checked = win.isAlwaysOnTop()
   }
 }
 
@@ -344,14 +328,6 @@ function onClose (win) {
 
     // unregister shortcuts
     unregisterAllShortcuts(win)
-
-    // save state
-    // NOTE this is called by .on('close')
-    // if quitting multiple windows at once, the final saved state is unpredictable
-    if (!win.isMinimized() && !win.isMaximized()) {
-      var state = getCurrentPosition(win)
-      userDataDir.write(stateStoreFile, state, { atomic: true })
-    }
   }
 }
 
