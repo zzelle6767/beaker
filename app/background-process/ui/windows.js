@@ -54,6 +54,9 @@ export function createWindow (url='beaker:start') {
   debug(`Opening ${url}`)
   numActiveWindows++
 
+  // register behaviors
+  win.on('page-title-updated', onPageTitleUpdated(win))
+
   // register shortcuts
   // TODO:notabs
   // for (var i=1; i <= 9; i++)
@@ -137,6 +140,13 @@ function ensureVisibleOnSomeDisplay (windowState) {
     return defaultState(windowState)
   }
   return windowState
+}
+
+function onPageTitleUpdated (win) {
+  return e => {
+    e.preventDefault()
+    win.setTitle(win.webContents.getTitle() + ' - ' + win.webContents.getURL())
+  }
 }
 
 function onClose (win) {
