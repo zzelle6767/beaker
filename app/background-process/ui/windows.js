@@ -29,10 +29,10 @@ export function setup () {
   })
 
   // create first shell window
-  return createShellWindow()
+  return createWindow()
 }
 
-export function createShellWindow () {
+export function createWindow (url='beaker:start') {
   // create window
   var { x, y, width, height } = ensureVisibleOnSomeDisplay(restoreState())
   var win = new BrowserWindow({
@@ -50,7 +50,8 @@ export function createShellWindow () {
     icon: path.join(__dirname, (process.platform === 'win32') ? './assets/img/logo.ico' : './assets/img/logo.png')
   })
   downloads.registerListener(win)
-  loadShell(win)
+  win.loadURL(url)
+  debug(`Opening ${url}`)
   numActiveWindows++
 
   // register shortcuts
@@ -86,11 +87,6 @@ export function getActiveWindow () {
 
 // internal methods
 // =
-
-function loadShell (win) {
-  win.loadURL('beaker:start')
-  debug('Opening beaker:start')  
-}
 
 function getCurrentPosition (win) {
   var position = win.getPosition()

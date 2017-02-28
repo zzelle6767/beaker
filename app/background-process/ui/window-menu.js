@@ -1,5 +1,5 @@
 import { app, BrowserWindow, dialog } from 'electron'
-import { createShellWindow } from './windows'
+import { createWindow } from './windows'
 
 var darwinMenu = {
   label: 'Beaker',
@@ -22,7 +22,7 @@ var fileMenu = {
     {
       label: 'New Window',
       accelerator: 'CmdOrCtrl+N',
-      click: function () { createShellWindow() }
+      click: function () { createWindow() }
     },
     {
       label: 'Open File',
@@ -31,8 +31,7 @@ var fileMenu = {
         if (win) {
           dialog.showOpenDialog({ title: 'Open file...', properties: ['openFile', 'createDirectory'] }, files => {
             if (files && files[0]) {
-              // TODO:notabs
-              // win.webContents.send('command', 'file:new-tab', 'file://'+files[0])
+              createWindow('file://'+files[0])
             }
           })
         }
@@ -129,24 +128,21 @@ var historyMenu = {
       label: 'Back',
       accelerator: 'CmdOrCtrl+Left',
       click: function (item, win) {
-        // TODO:notabs
-        // if (win) win.webContents.send('command', 'history:back')
+        if (win) win.webContents.goBack()
       }
     },
     {
       label: 'Forward',
       accelerator: 'CmdOrCtrl+Right',
       click: function (item, win) {
-        // TODO:notabs
-        // if (win) win.webContents.send('command', 'history:forward')
+        if (win) win.webContents.goForward()
       }
     },
     {
       label: 'Show Full History',
       accelerator: showHistoryAccelerator,
       click: function (item, win) {
-        // TODO:notabs
-        // if (win) win.webContents.send('command', 'file:new-tab', 'beaker:history')
+        createWindow('beaker:history')
       }
     }
   ]
@@ -188,22 +184,19 @@ var helpMenu = {
       label: 'Help',
       accelerator: 'F1',
       click: function (item, win) {
-        // TODO:notabs
-        // if (win) win.webContents.send('command', 'file:new-tab', 'https://beakerbrowser.com/docs/')
+        createWindow('https://beakerbrowser.com/docs/')
       }
     },
     {
       label: 'Report Bug',
       click: function (item, win) {
-        // TODO:notabs
-        // if (win) win.webContents.send('command', 'file:new-tab', 'https://github.com/beakerbrowser/beaker/issues')
+        createWindow('https://github.com/beakerbrowser/beaker/issues')
       }
     },
     {
       label: 'Mailing List',
       click: function (item, win) {
-        // TODO:notabs
-        // if (win) win.webContents.send('command', 'file:new-tab', 'https://groups.google.com/forum/#!forum/beaker-browser')
+        createWindow('https://groups.google.com/forum/#!forum/beaker-browser')
       }
     }
   ]
@@ -214,8 +207,7 @@ if (process.platform !== 'darwin') {
     label: 'About',
     role: 'about',
     click: function (item, win) {
-      // TODO:notabs
-      // if (win) win.webContents.send('command', 'file:new-tab', 'beaker:settings')
+      createWindow('beaker:settings')
     }
   })
 }

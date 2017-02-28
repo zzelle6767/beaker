@@ -6,7 +6,7 @@ import pda from 'pauls-dat-api'
 import { BrowserWindow } from 'electron'
 import { BKR_SERVER_PORT } from '../lib/const'
 import * as datLibrary from './networks/dat/library'
-import { getActiveWindow, createShellWindow } from './ui/windows'
+import { getActiveWindow, createWindow } from './ui/windows'
 import { open as openUrl } from './open-url'
 import * as archivesDb from './dbs/archives'
 var packageJson = require('./package.json')
@@ -48,7 +48,7 @@ export function setup () {
   methods.openUrl = ([url]) => {
     if (!url || typeof url !== 'string') return Promise.reject({ code: 400, message: `Invalid url` })
     // make sure a window is open
-    if (!getActiveWindow()) createShellWindow()
+    if (!getActiveWindow()) createWindow()
     const wc = openUrl(url)
     if (wc) {
       BrowserWindow.fromWebContents(wc).focus()
