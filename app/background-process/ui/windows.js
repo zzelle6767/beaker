@@ -65,11 +65,29 @@ export function createWindow (url='beaker:start') {
   debug(`Opening ${url}`)
   activeWindows.push(win)
 
+  // create status-bar subwindow
+  win.statusBarWin = new BrowserWindow({
+    parent: win,
+    x,
+    y: (y + height - 24),
+    width: 400,
+    height: 24,
+    show: false,
+    transparent: true,
+    frame: false,
+    focusable: false,
+    hasShadow: false
+  })
+  win.statusBarWin.loadURL('beaker:status-bar')
+
   // register behaviors
   win.on('focus', onFocus(win))
   win.on('page-title-updated', onPageTitleUpdated(win))
   win.on('close', onClose(win))
   win.webContents.on('new-window', onNewWindow(win))
+  win.webContents.on('update-target-url', onUpdateTargetUrl(win))
+  win.webContents.on('did-start-loading', onLoadingStateChange(win))
+  win.webContents.on('did-stop-loading', onLoadingStateChange(win))
 
   // register shortcuts
   registerShortcut(win, 'Ctrl+Tab', onNextWindow(win))
@@ -157,6 +175,26 @@ export function showSwitcherWindow () {
 
 // internal methods
 // =
+
+function setStatus (win, status) {
+  if (!status) {
+    // no status - if loading, show 'loading...'
+    if (win.webContents.isLoading()) {
+      status = 'Loading...'
+    }
+  }
+
+  if (!status) {
+    // definitely no status, hide the bar
+    win.statusBarWin.hide()
+  } else {
+    // show the bar with content
+    win.statusBarWin.webContents.executeJavaScript(`
+      setStatus(${JSON.stringify(status)})
+    `)
+    win.statusBarWin.show()
+  }
+}
 
 function getCurrentPosition (win) {
   var position = win.getPosition()
@@ -249,6 +287,18 @@ function onNewWindow (win) {
     if (disposition === 'background-tab' && lastWin) {
       lastWin.focus()
     }
+  }
+}
+
+function onUpdateTargetUrl (win) {
+  return (e, url) => {
+    setStatus(win, url)
+  }
+}
+
+function onLoadingStateChange (win) {
+  return (e) => {
+    setStatus(win)
   }
 }
 
