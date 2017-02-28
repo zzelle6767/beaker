@@ -5,6 +5,7 @@ sites loaded over the beaker: protocol
 
 import * as yo from 'yo-yo'
 import co from 'co'
+import {renderLocationBar} from './com/location-bar'
 
 const LATEST_VERSION = 6001 // semver where major*1mm and minor*1k; thus 3.2.1 = 3002001
 
@@ -26,6 +27,7 @@ co(function* () {
   bookmarks = (yield beakerBookmarks.list()) || []
   pinnedBookmarks = (yield beakerBookmarks.listPinned()) || []
   update()
+  document.querySelector('.location-bar input').focus()
 
   let latestVersion = yield beakerSitedata.get('beaker:start', 'latest-version')
   if (+latestVersion < LATEST_VERSION) {
@@ -41,6 +43,7 @@ co(function* () {
 function update () {
   yo.update(document.querySelector('.start-wrapper'), yo`
     <div class="start-wrapper">
+      ${renderLocationBar()}
       ${renderPinned()}
       ${renderBookmarks()}
       ${renderReleaseNotes()}

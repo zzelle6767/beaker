@@ -9,6 +9,7 @@
 @import "./com/markdown.less";
 @import "./com/modal.less";
 @import "./com/archive-view.less";
+@import "./com/location-bar.less";
 
 @import "./views/archives.less";
 @import "./views/settings.less";
@@ -69,7 +70,6 @@
   list-style: none;
 }
 
-
 .pinned {
   // TODO: make a flexbox-container extend -tbv
   display: flex;
@@ -79,17 +79,13 @@
   &__item {
     position: relative;
     width: 75px;
-    margin-bottom: 35px;
+    margin: 0 10px 35px;
     color: fadeout(#333, 25%);
     text-align: center;
     cursor: pointer; // TODO: extends for different cursor styles -tbv
 
     a {
       cursor: pointer;
-    }
-
-    &:not(:last-child) {
-      margin-right: 20px;
     }
 
     &:hover {

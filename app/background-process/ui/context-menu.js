@@ -88,20 +88,18 @@ export default function registerContextMenu () {
       else if (hasText) {
         menuItems.push({ label: 'Copy', role: 'copy', enabled: can('Copy') })
         menuItems.push({ type: 'separator' })
-      } else {
-        // no content under cursor
-        if (props.mediaType === 'none' && !props.linkURL) {
-          let wc = targetWindow.webContents
-          menuItems.push({ label: 'New Window', click: () => createWindow() })
-          menuItems.push({ label: 'Duplicate Window', click: () => createWindow(wc.getURL()) })
-          menuItems.push({ label: 'Copy Current URL', click: () => clipboard.writeText(wc.getURL()) })
-          menuItems.push({ type: 'separator' })
-          menuItems.push({ label: 'Back', enabled: wc.canGoBack(), click: () => wc.goBack() })
-          menuItems.push({ label: 'Forward', enabled: wc.canGoForward(), click: () => wc.goForward() })
-          menuItems.push({ label: 'Reload', click: () => wc.reload() })
-          menuItems.push({ type: 'separator' })
-        }
       }
+
+      // window management
+      let wc = targetWindow.webContents
+      menuItems.push({ label: 'New Window', click: () => createWindow() })
+      menuItems.push({ label: 'Duplicate Window', click: () => createWindow(wc.getURL()) })
+      menuItems.push({ label: 'Copy Current URL', click: () => clipboard.writeText(wc.getURL()) })
+      menuItems.push({ type: 'separator' })
+      menuItems.push({ label: 'Back', enabled: wc.canGoBack(), click: () => wc.goBack() })
+      menuItems.push({ label: 'Forward', enabled: wc.canGoForward(), click: () => wc.goForward() })
+      menuItems.push({ label: 'Reload', click: () => wc.reload() })
+      menuItems.push({ type: 'separator' })
 
       // inspector
       menuItems.push({ label: 'Inspect Element', click: item => {

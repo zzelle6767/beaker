@@ -238,13 +238,7 @@ function onPageTitleUpdated (win) {
 function onNewWindow (win) {
   return (e, url, frameName, disposition) => {
     e.preventDefault()
-
-
-    var lastWindow = BrowserWindow.getFocusedWindow()
-    var win = createWindow(url)
-    if (disposition === 'background-tab' && lastWindow) {
-      lastWindow.focus()
-    }
+    createWindow(url)
   }
 }
 
