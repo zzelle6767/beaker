@@ -2,6 +2,7 @@ import { app, Menu, clipboard, BrowserWindow, dialog } from 'electron'
 import url from 'url'
 import path from 'path'
 import { download } from './downloads'
+import {createWindow} from './windows'
 
 export default function registerContextMenu () {
   // register the context menu on every created webContents
@@ -16,10 +17,6 @@ export default function registerContextMenu () {
       // - fromWebContents(webContents) doesnt seem to work, maybe because webContents is often a webview?
       var targetWindow = BrowserWindow.getFocusedWindow()
       if (!targetWindow)
-        return
-
-      // ignore clicks on the shell window
-      if (props.pageURL == 'beaker:shell-window')
         return
 
       // helper to call code on the element under the cursor
@@ -41,8 +38,7 @@ export default function registerContextMenu () {
 
       // links
       if (props.linkURL && props.mediaType === 'none') {
-        // TODO:notabs
-        // menuItems.push({ label: 'Open Link in New Tab', click: (item, win) => win.webContents.send('command', 'file:new-tab', props.linkURL) })
+        menuItems.push({ label: 'Open Link in New Window', click: (item, win) => createWindow(props.linkURL) })
         menuItems.push({ label: 'Copy Link Address', click: () => clipboard.writeText(props.linkURL) })
         menuItems.push({ type: 'separator' })
       }
@@ -52,8 +48,7 @@ export default function registerContextMenu () {
         menuItems.push({ label: 'Save Image As...', click: downloadPrompt })
         menuItems.push({ label: 'Copy Image', click: () => webContents.copyImageAt(props.x, props.y) })
         menuItems.push({ label: 'Copy Image URL', click: () => clipboard.writeText(props.srcURL) })
-        // TODO:notabs
-        // menuItems.push({ label: 'Open Image in New Tab', click: (item, win) => win.webContents.send('command', 'file:new-tab', props.srcURL) })
+        menuItems.push({ label: 'Open Image in New Window', click: (item, win) => createWindow(props.srcURL) })
         menuItems.push({ type: 'separator' })
       }
 
@@ -71,8 +66,7 @@ export default function registerContextMenu () {
       if (props.mediaType == 'video') {
         menuItems.push({ label: 'Save Video As...', click: downloadPrompt })
         menuItems.push({ label: 'Copy Video URL', click: () => clipboard.writeText(props.srcURL) })
-        // TODO:notabs
-        // menuItems.push({ label: 'Open Video in New Tab', click: (item, win) => win.webContents.send('command', 'file:new-tab', props.srcURL) })
+        menuItems.push({ label: 'Open Video in New Window', click: (item, win) => createWindow(props.srcURL) })
         menuItems.push({ type: 'separator' })
       }
 
@@ -80,8 +74,7 @@ export default function registerContextMenu () {
       if (props.mediaType == 'audio') {
         menuItems.push({ label: 'Save Audio As...', click: downloadPrompt })
         menuItems.push({ label: 'Copy Audio URL', click: () => clipboard.writeText(props.srcURL) })
-        // TODO:notabs
-        // menuItems.push({ label: 'Open Audio in New Tab', click: (item, win) => win.webContents.send('command', 'file:new-tab', props.srcURL) })
+        menuItems.push({ label: 'Open Audio in New Window', click: (item, win) => createWindow(props.srcURL) })
         menuItems.push({ type: 'separator' })
       }
 
@@ -94,7 +87,20 @@ export default function registerContextMenu () {
       }
       else if (hasText) {
         menuItems.push({ label: 'Copy', role: 'copy', enabled: can('Copy') })
-        menuItems.push({ type: 'separator' })      
+        menuItems.push({ type: 'separator' })
+      } else {
+        // no content under cursor
+        if (props.mediaType === 'none' && !props.linkURL) {
+          let wc = targetWindow.webContents
+          menuItems.push({ label: 'New Window', click: () => createWindow() })
+          menuItems.push({ label: 'Duplicate Window', click: () => createWindow(wc.getURL()) })
+          menuItems.push({ label: 'Copy Current URL', click: () => clipboard.writeText(wc.getURL()) })
+          menuItems.push({ type: 'separator' })
+          menuItems.push({ label: 'Back', enabled: wc.canGoBack(), click: () => wc.goBack() })
+          menuItems.push({ label: 'Forward', enabled: wc.canGoForward(), click: () => wc.goForward() })
+          menuItems.push({ label: 'Reload', click: () => wc.reload() })
+          menuItems.push({ type: 'separator' })
+        }
       }
 
       // inspector
