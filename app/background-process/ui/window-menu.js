@@ -1,5 +1,5 @@
 import { app, BrowserWindow, dialog } from 'electron'
-import { createWindow } from './windows'
+import { createWindow, closeWindow } from './windows'
 
 var darwinMenu = {
   label: 'Beaker',
@@ -35,14 +35,6 @@ var fileMenu = {
             }
           })
         }
-      }
-    },
-    { type: 'separator' },
-    {
-      label: 'Close Window',
-      accelerator: 'CmdOrCtrl+Shift+W',
-      click: function (item, win) {
-        if (win) win.close()
       }
     }
   ]
@@ -161,7 +153,9 @@ var windowMenu = {
     {
       label: 'Close',
       accelerator: 'CmdOrCtrl+W',
-      role: 'close'
+      click: function (item, win) {
+        if (win) closeWindow(win)
+      }
     }
   ]
 }

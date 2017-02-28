@@ -10,7 +10,9 @@ var debug = require('debug')('beaker')
 // =
 var userDataDir
 var stateStoreFile = 'shell-window-state.json'
-var numActiveWindows = 0
+var currentWindowIndex = 0 // currently focused window
+var activeWindows = []
+var switcherWindow = null
 
 // exported methods
 // =
@@ -20,13 +22,16 @@ export function setup () {
   userDataDir = jetpack.cwd(app.getPath('userData'))
 
   // load pinned tabs
-  ipcMain.on('shell-window-ready', e => {
-    // if this is the first window opened (since app start or since all windows closing)
-    if (numActiveWindows === 1) {
-      // TODO:notabs
-      // e.sender.webContents.send('command', 'load-pinned-tabs')
-    }
-  })
+  // TODO:notabs
+  // ipcMain.on('shell-window-ready', e => {
+  //   // if this is the first window opened (since app start or since all windows closing)
+  //   if (activeWindows.length === 1) {
+  //     e.sender.webContents.send('command', 'load-pinned-tabs')
+  //   }
+  // })
+
+  // create the persistent switcher window
+  createSwitcherWindow()
 
   // create first shell window
   return createWindow()
@@ -52,31 +57,62 @@ export function createWindow (url='beaker:start') {
   downloads.registerListener(win)
   win.loadURL(url)
   debug(`Opening ${url}`)
-  numActiveWindows++
+  activeWindows.push(win)
 
   // register behaviors
+  win.on('focus', onFocus(win))
   win.on('page-title-updated', onPageTitleUpdated(win))
+  win.on('close', onClose(win))
+  win.webContents.on('new-window', onNewWindow(win))
 
   // register shortcuts
-  // TODO:notabs
-  // for (var i=1; i <= 9; i++)
-  //   registerShortcut(win, 'CmdOrCtrl+'+i, onTabSelect(win, i-1))
-  // registerShortcut(win, 'Ctrl+Tab', onNextTab(win))
-  // registerShortcut(win, 'Ctrl+Shift+Tab', onPrevTab(win))
-  // registerShortcut(win, 'CmdOrCtrl+[', onGoBack(win))
-  // registerShortcut(win, 'CmdOrCtrl+]', onGoForward(win))
-
-  // register event handlers
-  // TODO:notabs
-  // win.on('scroll-touch-begin', sendToWebContents('scroll-touch-begin'))
-  // win.on('scroll-touch-end', sendToWebContents('scroll-touch-end'))
-  // win.on('focus', sendToWebContents('focus'))
-  // win.on('blur', sendToWebContents('blur'))
-  // win.on('enter-full-screen', sendToWebContents('enter-full-screen'))
-  // win.on('leave-full-screen', sendToWebContents('leave-full-screen'))
-  win.on('close', onClose(win))
+  registerShortcut(win, 'Ctrl+Tab', onNextWindow(win))
+  registerShortcut(win, 'Ctrl+Shift+Tab', onNextWindow(win, -1))
+  for (var i=1; i <= 9; i++)
+    registerShortcut(win, 'CmdOrCtrl+'+i, onWindowSelect(win, i-1))
+  registerShortcut(win, 'CmdOrCtrl+[', onGoBack(win))
+  registerShortcut(win, 'CmdOrCtrl+]', onGoForward(win))
 
   return win
+}
+
+export function createSwitcherWindow () {
+  if (switcherWindow) return
+
+  // TODO choose good dimensions
+  var x = 5
+  var y = 5
+  var width = 400
+  var height = 100
+  switcherWindow = new BrowserWindow({
+    x, y, width, height,
+    frame: false,
+    show: false,
+    webPreferences: {
+      webSecurity: true,
+      nodeIntegration: false
+    },
+    icon: path.join(__dirname, (process.platform === 'win32') ? './assets/img/logo.ico' : './assets/img/logo.png')
+  })
+  switcherWindow.loadURL('beaker:switcher')
+
+  // register behaviors
+  switcherWindow.on('blur', onHide(switcherWindow))
+
+  // register shortcuts
+  registerShortcut(switcherWindow, 'Ctrl+Tab', onNextWindow(switcherWindow))
+  registerShortcut(switcherWindow, 'Ctrl+Shift+Tab', onNextWindow(switcherWindow, -1))
+  registerShortcut(switcherWindow, 'Escape', onHide(switcherWindow))
+  registerShortcut(switcherWindow, 'Enter', onSelect(switcherWindow))
+}
+
+export function closeWindow (win) {
+  if (win === switcherWindow) {
+    // just hide
+    switcherWindow.hide()    
+  } else {
+    win.close()
+  }
 }
 
 export function getActiveWindow () {
@@ -86,6 +122,31 @@ export function getActiveWindow () {
     win = BrowserWindow.getAllWindows().pop()
   }
   return win
+}
+
+export function showSwitcherWindow () {
+  var currentWindow = BrowserWindow.getFocusedWindow()
+
+  // position on the screen
+  var display
+  if (currentWindow && currentWindow !== switcherWindow) {
+    display = screen.getDisplayMatching(currentWindow.getBounds())
+  }
+  if (!display) {
+    display = screen.getPrimaryDisplay()
+  }
+  var width = Math.min(1000, display.bounds.width - 100)
+  switcherWindow.setContentBounds({
+    x: display.bounds.x + (display.bounds.width - width) / 2,
+    y: display.bounds.y + ((display.bounds.height - display.bounds.y) / 2) - 100,
+    width: width,
+    height: 115
+  })
+
+  // make visible
+  renderSwitcher()
+  switcherWindow.show()
+  switcherWindow.focus()
 }
 
 // internal methods
@@ -142,6 +203,31 @@ function ensureVisibleOnSomeDisplay (windowState) {
   return windowState
 }
 
+function renderSwitcher () {  
+  // construct info about the current state
+  var processes = activeWindows.map(w => ({
+    title: w.getTitle(),
+    url: w.webContents.getURL()
+  }))
+
+  // send data to the switcher
+  switcherWindow.webContents.executeJavaScript(`
+    setCurrent(${currentWindowIndex})
+    setProcesses(${JSON.stringify(processes)})
+    render()
+  `)
+}
+
+// event handlers
+// =
+
+function onFocus (win) {
+  return e => {
+    currentWindowIndex = activeWindows.findIndex(w => w == win)
+    if (currentWindowIndex === -1) currentWindowIndex = 0
+  }
+}
+
 function onPageTitleUpdated (win) {
   return e => {
     e.preventDefault()
@@ -149,9 +235,24 @@ function onPageTitleUpdated (win) {
   }
 }
 
+function onNewWindow (win) {
+  return (e, url, frameName, disposition) => {
+    e.preventDefault()
+
+
+    var lastWindow = BrowserWindow.getFocusedWindow()
+    var win = createWindow(url)
+    if (disposition === 'background-tab' && lastWindow) {
+      lastWindow.focus()
+    }
+  }
+}
+
 function onClose (win) {
   return e => {
-    numActiveWindows--
+    var i = activeWindows.findIndex(w => w == win)
+    if (i !== -1) activeWindows.splice(i, 1)
+    else console.error('Failed to splice out window from activeWindows')
 
     // deny any outstanding permission requests
     permissions.denyAllRequests(win)
@@ -172,33 +273,51 @@ function onClose (win) {
 // shortcut event handlers
 // =
 
-function onTabSelect (win, tabIndex) {
-  // TODO:notabs
-  // return () => win.webContents.send('command', 'set-tab', tabIndex)
+function onWindowSelect (win, winIndex) {
+  return () => {
+    if (activeWindows[winIndex]) {
+      activeWindows[winIndex].focus()
+    }
+  }
 }
 
-function onNextTab (win) {
-  // TODO:notabs
-  // return () => win.webContents.send('command', 'window:next-tab')
-}
-function onPrevTab (win) {
-  // TODO:notabs
-  // return () => win.webContents.send('command', 'window:prev-tab')
+function onNextWindow (win, direction=1) {
+  return () => {
+    if (!switcherWindow.isFocused()) {
+      // show the switcher on first hit
+      showSwitcherWindow()
+    } else {
+      // cycle through active windows
+      currentWindowIndex += direction
+      if (currentWindowIndex < 0) {
+        currentWindowIndex += activeWindows.length
+      }
+      if (currentWindowIndex >= activeWindows.length) {
+        currentWindowIndex -= activeWindows.length
+      }
+      renderSwitcher()
+    }
+  }
 }
 function onGoBack (win) {
-  // TODO:notabs
-  // return () => win.webContents.send('command', 'history:back')
+  return () => win.webContents.goBack()
 }
+
 function onGoForward (win) {
-  // TODO:notabs
-  // return () => win.webContents.send('command', 'history:forward')
+  return () => win.webContents.goForward()
 }
 
+function onSelect (win) {
+  return () => {
+    var winToFocus = activeWindows[currentWindowIndex]
+    switcherWindow.hide()
+    if (winToFocus) {
+      winToFocus.show()
+      winToFocus.focus()
+    }
+  }
+}
 
-// window event handlers
-// =
-
-function sendToWebContents (event) {
-  // TODO:notabs
-  // return e => e.sender.webContents.send('window-event', event)
+function onHide (win) {
+  return () => win.hide()
 }

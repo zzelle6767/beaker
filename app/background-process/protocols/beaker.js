@@ -81,6 +81,12 @@ function beakerServer (req, res) {
   }
 
   // browser ui
+  if (requestUrl === 'beaker:switcher') {
+    return cb(200, 'OK', 'text/html', path.join(__dirname, 'switcher.html'))
+  }
+  if (requestUrl === 'beaker:switcher.js') {
+    return cb(200, 'OK', 'application/javascript', path.join(__dirname, 'switcher.js'))
+  }
   if (requestUrl === 'beaker:icons.css') {
     return cb(200, 'OK', 'text/css', path.join(__dirname, 'stylesheets/icons.css'))
   }

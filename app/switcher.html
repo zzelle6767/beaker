@@ -1,0 +1,42 @@
+<div id="iconsDiv"></div>
+<input id="locationInput" readonly>
+
+<style>
+body {
+  font-family: sans-serif;
+  color: #333;
+}
+#iconsDiv {
+  display: flex;
+  margin-bottom: 5px;
+}
+.icon {
+  width: 64px;
+  height: 64px;
+  background: #f5f5f5;
+  border-radius: 5px;
+
+  margin-right: 5px;
+}
+.icon.selected {
+  background: #ccc;
+  outline: 1px blue;
+}
+.icon img {
+  width: 32px;
+  height: 32px;
+  transform: translate(50%, 50%);
+}
+#locationInput {
+  display: block;
+  width: 100%;
+  padding: 6px;
+  border-radius: 2px;
+  border: 1px solid #aaa;
+  font-size: 16px;
+  font-weight: 100;
+  outline: 0;
+}
+</style>
+
+<script src="beaker:switcher.js"></script>
