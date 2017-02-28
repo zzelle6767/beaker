@@ -5,10 +5,16 @@ window.setCurrent = n => {currentProcess = n}
 window.setProcesses = p => {processes = p}
 
 window.render = () => {
-  iconsDiv.innerHTML = processes.map((process, i) => `
-    <div class="icon ${i == currentProcess ? 'selected' : ''}">
+  processesDiv.innerHTML = processes.map((process, i) => `
+    <div class="process ${i == currentProcess ? 'selected' : ''}">
       <img src="beaker-favicon:${process.url}">
+      <div class="title">${process.title}</div>
     </div>
   `).join('')
-  locationInput.value = processes[currentProcess].title
 }
+
+window.addEventListener('keyup', e => {
+  if (e.key === 'Control') {
+    window.close()
+  }
+})

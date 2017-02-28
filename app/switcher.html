@@ -1,41 +1,30 @@
-<div id="iconsDiv"></div>
-<input id="locationInput" readonly>
+<div id="processesDiv"></div>
 
 <style>
 body {
   font-family: sans-serif;
   color: #333;
+  margin: 0;
 }
-#iconsDiv {
+#processesDiv {
+}
+.process {
   display: flex;
-  margin-bottom: 5px;
+  border-radius: 0;
+  height: 40px;
+  padding: 4px;
+  box-sizing: border-box;
 }
-.icon {
-  width: 64px;
-  height: 64px;
-  background: #f5f5f5;
-  border-radius: 5px;
-
-  margin-right: 5px;
+.process.selected {
+  background: #eee;
 }
-.icon.selected {
-  background: #ccc;
-  outline: 1px blue;
-}
-.icon img {
+.process img {
   width: 32px;
   height: 32px;
-  transform: translate(50%, 50%);
 }
-#locationInput {
-  display: block;
-  width: 100%;
-  padding: 6px;
-  border-radius: 2px;
-  border: 1px solid #aaa;
-  font-size: 16px;
-  font-weight: 100;
-  outline: 0;
+.process .title {
+  flex: 1;
+  padding: 8px;
 }
 </style>
 

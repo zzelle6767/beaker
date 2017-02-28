@@ -13,6 +13,7 @@ var stateStoreFile = 'shell-window-state.json'
 var currentWindowIndex = 0 // currently focused window
 var activeWindows = []
 var switcherWindow = null
+var isQuitting = false
 
 // exported methods
 // =
@@ -29,6 +30,11 @@ export function setup () {
   //     e.sender.webContents.send('command', 'load-pinned-tabs')
   //   }
   // })
+
+  // listen for quitting state
+  app.on('before-quit', () => {
+    isQuitting = true
+  })
 
   // create the persistent switcher window
   createSwitcherWindow()
@@ -79,13 +85,7 @@ export function createWindow (url='beaker:start') {
 export function createSwitcherWindow () {
   if (switcherWindow) return
 
-  // TODO choose good dimensions
-  var x = 5
-  var y = 5
-  var width = 400
-  var height = 100
   switcherWindow = new BrowserWindow({
-    x, y, width, height,
     frame: false,
     show: false,
     webPreferences: {
@@ -97,13 +97,18 @@ export function createSwitcherWindow () {
   switcherWindow.loadURL('beaker:switcher')
 
   // register behaviors
-  switcherWindow.on('blur', onHide(switcherWindow))
+  switcherWindow.on('blur', onSwitcherSelect(switcherWindow))
+  switcherWindow.on('close', (e) => {
+    if (!isQuitting) {
+      // only hide unless we're quitting
+      e.preventDefault()
+      switcherWindow.hide()
+    }
+  })
 
   // register shortcuts
   registerShortcut(switcherWindow, 'Ctrl+Tab', onNextWindow(switcherWindow))
   registerShortcut(switcherWindow, 'Ctrl+Shift+Tab', onNextWindow(switcherWindow, -1))
-  registerShortcut(switcherWindow, 'Escape', onHide(switcherWindow))
-  registerShortcut(switcherWindow, 'Enter', onSelect(switcherWindow))
 }
 
 export function closeWindow (win) {
@@ -136,11 +141,12 @@ export function showSwitcherWindow () {
     display = screen.getPrimaryDisplay()
   }
   var width = Math.min(1000, display.bounds.width - 100)
+  var height = Math.min(activeWindows.length * 40, display.bounds.height - 100)
   switcherWindow.setContentBounds({
     x: display.bounds.x + (display.bounds.width - width) / 2,
-    y: display.bounds.y + ((display.bounds.height - display.bounds.y) / 2) - 100,
-    width: width,
-    height: 115
+    y: display.bounds.y + ((display.bounds.height - display.bounds.y) / 2) - height,
+    width,
+    height
   })
 
   // make visible
@@ -238,7 +244,11 @@ function onPageTitleUpdated (win) {
 function onNewWindow (win) {
   return (e, url, frameName, disposition) => {
     e.preventDefault()
+    var lastWin = activeWindows[currentWindowIndex]
     createWindow(url)
+    if (disposition === 'background-tab' && lastWin) {
+      lastWin.focus()
+    }
   }
 }
 
@@ -270,6 +280,7 @@ function onClose (win) {
 function onWindowSelect (win, winIndex) {
   return () => {
     if (activeWindows[winIndex]) {
+      currentWindowIndex = winIndex
       activeWindows[winIndex].focus()
     }
   }
@@ -280,17 +291,16 @@ function onNextWindow (win, direction=1) {
     if (!switcherWindow.isFocused()) {
       // show the switcher on first hit
       showSwitcherWindow()
-    } else {
-      // cycle through active windows
-      currentWindowIndex += direction
-      if (currentWindowIndex < 0) {
-        currentWindowIndex += activeWindows.length
-      }
-      if (currentWindowIndex >= activeWindows.length) {
-        currentWindowIndex -= activeWindows.length
-      }
-      renderSwitcher()
     }
+    // cycle through active windows
+    currentWindowIndex += direction
+    if (currentWindowIndex < 0) {
+      currentWindowIndex += activeWindows.length
+    }
+    if (currentWindowIndex >= activeWindows.length) {
+      currentWindowIndex -= activeWindows.length
+    }
+    renderSwitcher()
   }
 }
 function onGoBack (win) {
@@ -301,7 +311,7 @@ function onGoForward (win) {
   return () => win.webContents.goForward()
 }
 
-function onSelect (win) {
+function onSwitcherSelect (win) {
   return () => {
     var winToFocus = activeWindows[currentWindowIndex]
     switcherWindow.hide()
@@ -310,8 +320,4 @@ function onSelect (win) {
       winToFocus.focus()
     }
   }
-}
-
-function onHide (win) {
-  return () => win.hide()
 }
