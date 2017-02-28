@@ -20,23 +20,9 @@ var fileMenu = {
   label: 'File',
   submenu: [
     {
-      label: 'New Tab',
-      accelerator: 'CmdOrCtrl+T',
-      click: function (item, win) {
-        if (win) win.webContents.send('command', 'file:new-tab')
-      }
-    },
-    {
       label: 'New Window',
       accelerator: 'CmdOrCtrl+N',
       click: function () { createShellWindow() }
-    },
-    {
-      label: 'Reopen Closed Tab',
-      accelerator: 'CmdOrCtrl+Shift+T',
-      click: function (item, win) {
-        if (win) win.webContents.send('command', 'file:reopen-closed-tab')
-      }
     },
     {
       label: 'Open File',
@@ -44,17 +30,12 @@ var fileMenu = {
       click: function (item, win) {
         if (win) {
           dialog.showOpenDialog({ title: 'Open file...', properties: ['openFile', 'createDirectory'] }, files => {
-            if (files && files[0])
-              win.webContents.send('command', 'file:new-tab', 'file://'+files[0])
+            if (files && files[0]) {
+              // TODO:notabs
+              // win.webContents.send('command', 'file:new-tab', 'file://'+files[0])
+            }
           })
         }
-      }
-    },
-    {
-      label: 'Open Location',
-      accelerator: 'CmdOrCtrl+L',
-      click: function (item, win) {
-        if (win) win.webContents.send('command', 'file:open-location')
       }
     },
     { type: 'separator' },
@@ -63,13 +44,6 @@ var fileMenu = {
       accelerator: 'CmdOrCtrl+Shift+W',
       click: function (item, win) {
         if (win) win.close()
-      }
-    },
-    {
-      label: 'Close Tab',
-      accelerator: 'CmdOrCtrl+W',
-      click: function (item, win) {
-        if (win) win.webContents.send('command', 'file:close-tab')
       }
     }
   ]
@@ -84,14 +58,7 @@ var editMenu = {
     { label: "Cut", accelerator: "CmdOrCtrl+X", selector: "cut:" },
     { label: "Copy", accelerator: "CmdOrCtrl+C", selector: "copy:" },
     { label: "Paste", accelerator: "CmdOrCtrl+V", selector: "paste:" },
-    { label: "Select All", accelerator: "CmdOrCtrl+A", selector: "selectAll:" },
-    {
-      label: "Find in Page",
-      accelerator: "CmdOrCtrl+F",
-      click: function (item, win) {
-        if (win) win.webContents.send('command', 'edit:find')
-      }
-    }
+    { label: "Select All", accelerator: "CmdOrCtrl+A", selector: "selectAll:" }
   ]
 }
 
@@ -101,14 +68,16 @@ var viewMenu = {
     label: 'Reload',
     accelerator: 'CmdOrCtrl+R',
     click: function (item, win) {
-      if (win) win.webContents.send('command', 'view:reload')
+      if (win) {
+        win.webContents.reload()
+      }
     }
   },
   {
     label: 'Hard Reload (Clear Cache)',
     accelerator: 'CmdOrCtrl+Shift+R',
     click: function (item, win) {
-      if (win) win.webContents.send('command', 'view:hard-reload')
+      if (win) win.webContents.reloadIgnoringCache()
     }
   },
   { type: "separator" },
@@ -116,21 +85,24 @@ var viewMenu = {
     label: 'Zoom In',
     accelerator: 'CmdOrCtrl+Plus',
     click: function (item, win) {
-      if (win) win.webContents.send('command', 'view:zoom-in')
+      // TODO:notabs
+      // if (win) win.webContents.send('command', 'view:zoom-in')
     }
   },
   {
     label: 'Zoom Out',
     accelerator: 'CmdOrCtrl+-',
     click: function (item, win) {
-      if (win) win.webContents.send('command', 'view:zoom-out')
+      // TODO:notabs
+      // if (win) win.webContents.send('command', 'view:zoom-out')
     }
   },
   {
     label: 'Actual Size',
     accelerator: 'CmdOrCtrl+0',
     click: function (item, win) {
-      if (win) win.webContents.send('command', 'view:zoom-reset')
+      // TODO:notabs
+      // if (win) win.webContents.send('command', 'view:zoom-reset')
     }
   },
   { type: "separator" },
@@ -138,7 +110,7 @@ var viewMenu = {
     label: 'Toggle DevTools',
     accelerator: 'Alt+CmdOrCtrl+I',
     click: function (item, win) {
-      if (win) win.webContents.send('command', 'view:toggle-dev-tools')
+      if (win) win.toggleDevTools()
     }
   }]
 }
@@ -157,21 +129,24 @@ var historyMenu = {
       label: 'Back',
       accelerator: 'CmdOrCtrl+Left',
       click: function (item, win) {
-        if (win) win.webContents.send('command', 'history:back')
+        // TODO:notabs
+        // if (win) win.webContents.send('command', 'history:back')
       }
     },
     {
       label: 'Forward',
       accelerator: 'CmdOrCtrl+Right',
       click: function (item, win) {
-        if (win) win.webContents.send('command', 'history:forward')
+        // TODO:notabs
+        // if (win) win.webContents.send('command', 'history:forward')
       }
     },
     {
       label: 'Show Full History',
       accelerator: showHistoryAccelerator,
       click: function (item, win) {
-        if (win) win.webContents.send('command', 'file:new-tab', 'beaker:history')
+        // TODO:notabs
+        // if (win) win.webContents.send('command', 'file:new-tab', 'beaker:history')
       }
     }
   ]
@@ -191,20 +166,6 @@ var windowMenu = {
       label: 'Close',
       accelerator: 'CmdOrCtrl+W',
       role: 'close'
-    },
-    {
-      label: 'Next Tab',
-      accelerator: 'CmdOrCtrl+}',
-      click: function (item, win) {
-        if (win) win.webContents.send('command', 'window:next-tab')
-      }
-    },
-    {
-      label: 'Previous Tab',
-      accelerator: 'CmdOrCtrl+{',
-      click: function (item, win) {
-        if (win) win.webContents.send('command', 'window:prev-tab')
-      }
     }
   ]
 }
@@ -219,22 +180,6 @@ if (process.platform == 'darwin') {
 }
 
 
-var beakerDevMenu = {
-  label: 'BeakerDev',
-  submenu: [{
-    label: 'Reload Shell-Window',
-    click: function () {
-      BrowserWindow.getFocusedWindow().webContents.reloadIgnoringCache()
-    }
-  },{
-    label: 'Toggle Shell-Window DevTools',
-    click: function () {
-      BrowserWindow.getFocusedWindow().toggleDevTools()
-    }
-  }]
-}
-
-
 var helpMenu = {
   label: 'Help',
   role: 'help',
@@ -243,19 +188,22 @@ var helpMenu = {
       label: 'Help',
       accelerator: 'F1',
       click: function (item, win) {
-        if (win) win.webContents.send('command', 'file:new-tab', 'https://beakerbrowser.com/docs/')
+        // TODO:notabs
+        // if (win) win.webContents.send('command', 'file:new-tab', 'https://beakerbrowser.com/docs/')
       }
     },
     {
       label: 'Report Bug',
       click: function (item, win) {
-        if (win) win.webContents.send('command', 'file:new-tab', 'https://github.com/beakerbrowser/beaker/issues')
+        // TODO:notabs
+        // if (win) win.webContents.send('command', 'file:new-tab', 'https://github.com/beakerbrowser/beaker/issues')
       }
     },
     {
       label: 'Mailing List',
       click: function (item, win) {
-        if (win) win.webContents.send('command', 'file:new-tab', 'https://groups.google.com/forum/#!forum/beaker-browser')
+        // TODO:notabs
+        // if (win) win.webContents.send('command', 'file:new-tab', 'https://groups.google.com/forum/#!forum/beaker-browser')
       }
     }
   ]
@@ -266,7 +214,8 @@ if (process.platform !== 'darwin') {
     label: 'About',
     role: 'about',
     click: function (item, win) {
-      if (win) win.webContents.send('command', 'file:new-tab', 'beaker:settings')
+      // TODO:notabs
+      // if (win) win.webContents.send('command', 'file:new-tab', 'beaker:settings')
     }
   })
 }
@@ -274,6 +223,5 @@ if (process.platform !== 'darwin') {
 export default function buildWindowMenu () {
   var menus = [fileMenu, editMenu, viewMenu, historyMenu, windowMenu, helpMenu]
   if (process.platform === 'darwin') menus.unshift(darwinMenu)
-  menus.push(beakerDevMenu) // TODO: remove in release build?
   return menus
 }

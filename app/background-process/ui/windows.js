@@ -23,7 +23,8 @@ export function setup () {
   ipcMain.on('shell-window-ready', e => {
     // if this is the first window opened (since app start or since all windows closing)
     if (numActiveWindows === 1) {
-      e.sender.webContents.send('command', 'load-pinned-tabs')
+      // TODO:notabs
+      // e.sender.webContents.send('command', 'load-pinned-tabs')
     }
   })
 
@@ -34,13 +35,17 @@ export function setup () {
 export function createShellWindow () {
   // create window
   var { x, y, width, height } = ensureVisibleOnSomeDisplay(restoreState())
-  var win = new BrowserWindow({ 
-    titleBarStyle: 'hidden-inset',
-    'standard-window': false,
+  var win = new BrowserWindow({
+    'standard-window': false, // ? what is this?
     x, y, width, height,
     webPreferences: {
-      webSecurity: false, // disable same-origin-policy in the shell window, webviews have it restored
+      webSecurity: true,
+      nodeIntegration: false,
+      preload: path.join(app.getAppPath(), 'webview-preload.build.js'),
+      allowDisplayingInsecureContent: true,
       allowRunningInsecureContent: false
+      // sandbox: true, TODO!
+      // contextIsolation: true TODO!
     },
     icon: path.join(__dirname, (process.platform === 'win32') ? './assets/img/logo.ico' : './assets/img/logo.png')
   })
@@ -49,20 +54,22 @@ export function createShellWindow () {
   numActiveWindows++
 
   // register shortcuts
-  for (var i=1; i <= 9; i++)
-    registerShortcut(win, 'CmdOrCtrl+'+i, onTabSelect(win, i-1))
-  registerShortcut(win, 'Ctrl+Tab', onNextTab(win))
-  registerShortcut(win, 'Ctrl+Shift+Tab', onPrevTab(win))
-  registerShortcut(win, 'CmdOrCtrl+[', onGoBack(win))
-  registerShortcut(win, 'CmdOrCtrl+]', onGoForward(win))
+  // TODO:notabs
+  // for (var i=1; i <= 9; i++)
+  //   registerShortcut(win, 'CmdOrCtrl+'+i, onTabSelect(win, i-1))
+  // registerShortcut(win, 'Ctrl+Tab', onNextTab(win))
+  // registerShortcut(win, 'Ctrl+Shift+Tab', onPrevTab(win))
+  // registerShortcut(win, 'CmdOrCtrl+[', onGoBack(win))
+  // registerShortcut(win, 'CmdOrCtrl+]', onGoForward(win))
 
   // register event handlers
-  win.on('scroll-touch-begin', sendToWebContents('scroll-touch-begin'))
-  win.on('scroll-touch-end', sendToWebContents('scroll-touch-end'))
-  win.on('focus', sendToWebContents('focus'))
-  win.on('blur', sendToWebContents('blur'))
-  win.on('enter-full-screen', sendToWebContents('enter-full-screen'))
-  win.on('leave-full-screen', sendToWebContents('leave-full-screen'))
+  // TODO:notabs
+  // win.on('scroll-touch-begin', sendToWebContents('scroll-touch-begin'))
+  // win.on('scroll-touch-end', sendToWebContents('scroll-touch-end'))
+  // win.on('focus', sendToWebContents('focus'))
+  // win.on('blur', sendToWebContents('blur'))
+  // win.on('enter-full-screen', sendToWebContents('enter-full-screen'))
+  // win.on('leave-full-screen', sendToWebContents('leave-full-screen'))
   win.on('close', onClose(win))
 
   return win
@@ -81,8 +88,8 @@ export function getActiveWindow () {
 // =
 
 function loadShell (win) {
-  win.loadURL('beaker:shell-window')
-  debug('Opening beaker:shell-window')  
+  win.loadURL('beaker:start')
+  debug('Opening beaker:start')  
 }
 
 function getCurrentPosition (win) {
@@ -160,20 +167,25 @@ function onClose (win) {
 // =
 
 function onTabSelect (win, tabIndex) {
-  return () => win.webContents.send('command', 'set-tab', tabIndex)
+  // TODO:notabs
+  // return () => win.webContents.send('command', 'set-tab', tabIndex)
 }
 
 function onNextTab (win) {
-  return () => win.webContents.send('command', 'window:next-tab')
+  // TODO:notabs
+  // return () => win.webContents.send('command', 'window:next-tab')
 }
 function onPrevTab (win) {
-  return () => win.webContents.send('command', 'window:prev-tab')
+  // TODO:notabs
+  // return () => win.webContents.send('command', 'window:prev-tab')
 }
 function onGoBack (win) {
-  return () => win.webContents.send('command', 'history:back')
+  // TODO:notabs
+  // return () => win.webContents.send('command', 'history:back')
 }
 function onGoForward (win) {
-  return () => win.webContents.send('command', 'history:forward')
+  // TODO:notabs
+  // return () => win.webContents.send('command', 'history:forward')
 }
 
 
@@ -181,5 +193,6 @@ function onGoForward (win) {
 // =
 
 function sendToWebContents (event) {
-  return e => e.sender.webContents.send('window-event', event)
+  // TODO:notabs
+  // return e => e.sender.webContents.send('window-event', event)
 }

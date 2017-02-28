@@ -5,6 +5,7 @@ import beaker from './lib/web-apis/beaker'
 import { setup as setupLocationbar } from './webview-preload/locationbar'
 import { setup as setupNavigatorPermissions } from './webview-preload/navigator-permissions-api'
 
+console.log('I live!')
 // register protocol behaviors
 /* This marks the scheme as:
  - Secure

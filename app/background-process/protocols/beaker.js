@@ -15,6 +15,7 @@ import {archivesDebugPage} from '../networks/dat/debugging'
 // content security policies
 const BEAKER_CSP = `
   default-src 'self' beaker:;
+  script-src 'self' 'unsafe-eval' beaker:;
   img-src beaker-favicon: data: dat: http: https;
   style-src 'self' 'unsafe-inline' beaker:;
 `.replace(/\n/g, '')
@@ -80,15 +81,6 @@ function beakerServer (req, res) {
   }
 
   // browser ui
-  if (requestUrl === 'beaker:shell-window') {
-    return cb(200, 'OK', 'text/html', path.join(__dirname, 'shell-window.html'))
-  }
-  if (requestUrl === 'beaker:shell-window.js') {
-    return cb(200, 'OK', 'application/javascript', path.join(__dirname, 'shell-window.build.js'))
-  }
-  if (requestUrl === 'beaker:shell-window.css') {
-    return cb(200, 'OK', 'text/css', path.join(__dirname, 'stylesheets/shell-window.css'))
-  }
   if (requestUrl === 'beaker:icons.css') {
     return cb(200, 'OK', 'text/css', path.join(__dirname, 'stylesheets/icons.css'))
   }

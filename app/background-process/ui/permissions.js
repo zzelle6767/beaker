@@ -115,7 +115,8 @@ function onPermissionRequestHandler (webContents, permission, cb, opts) {
     }
 
     // send message to create the UI
-    win.webContents.send('command', 'perms:prompt', req.id, webContents.id, permission, opts)
+    // TODO:notabs
+    // win.webContents.send('command', 'perms:prompt', req.id, webContents.id, permission, opts)
   })
 }
 

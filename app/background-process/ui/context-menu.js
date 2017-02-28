@@ -41,7 +41,8 @@ export default function registerContextMenu () {
 
       // links
       if (props.linkURL && props.mediaType === 'none') {
-        menuItems.push({ label: 'Open Link in New Tab', click: (item, win) => win.webContents.send('command', 'file:new-tab', props.linkURL) })
+        // TODO:notabs
+        // menuItems.push({ label: 'Open Link in New Tab', click: (item, win) => win.webContents.send('command', 'file:new-tab', props.linkURL) })
         menuItems.push({ label: 'Copy Link Address', click: () => clipboard.writeText(props.linkURL) })
         menuItems.push({ type: 'separator' })
       }
@@ -51,7 +52,8 @@ export default function registerContextMenu () {
         menuItems.push({ label: 'Save Image As...', click: downloadPrompt })
         menuItems.push({ label: 'Copy Image', click: () => webContents.copyImageAt(props.x, props.y) })
         menuItems.push({ label: 'Copy Image URL', click: () => clipboard.writeText(props.srcURL) })
-        menuItems.push({ label: 'Open Image in New Tab', click: (item, win) => win.webContents.send('command', 'file:new-tab', props.srcURL) })
+        // TODO:notabs
+        // menuItems.push({ label: 'Open Image in New Tab', click: (item, win) => win.webContents.send('command', 'file:new-tab', props.srcURL) })
         menuItems.push({ type: 'separator' })
       }
 
@@ -69,7 +71,8 @@ export default function registerContextMenu () {
       if (props.mediaType == 'video') {
         menuItems.push({ label: 'Save Video As...', click: downloadPrompt })
         menuItems.push({ label: 'Copy Video URL', click: () => clipboard.writeText(props.srcURL) })
-        menuItems.push({ label: 'Open Video in New Tab', click: (item, win) => win.webContents.send('command', 'file:new-tab', props.srcURL) })
+        // TODO:notabs
+        // menuItems.push({ label: 'Open Video in New Tab', click: (item, win) => win.webContents.send('command', 'file:new-tab', props.srcURL) })
         menuItems.push({ type: 'separator' })
       }
 
@@ -77,7 +80,8 @@ export default function registerContextMenu () {
       if (props.mediaType == 'audio') {
         menuItems.push({ label: 'Save Audio As...', click: downloadPrompt })
         menuItems.push({ label: 'Copy Audio URL', click: () => clipboard.writeText(props.srcURL) })
-        menuItems.push({ label: 'Open Audio in New Tab', click: (item, win) => win.webContents.send('command', 'file:new-tab', props.srcURL) })
+        // TODO:notabs
+        // menuItems.push({ label: 'Open Audio in New Tab', click: (item, win) => win.webContents.send('command', 'file:new-tab', props.srcURL) })
         menuItems.push({ type: 'separator' })
       }
 
