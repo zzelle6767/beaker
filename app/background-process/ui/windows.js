@@ -43,12 +43,13 @@ export function setup () {
   return createWindow()
 }
 
-export function createWindow (url='beaker:start') {
+export function createWindow (url='beaker:start', {background} = {}) {
   // create window
   var { x, y, width, height } = ensureVisibleOnSomeDisplay(restoreState())
   var win = new BrowserWindow({
     'standard-window': false, // ? what is this?
     x, y, width, height,
+    // show: !background, TODO this isnt working
     webPreferences: {
       webSecurity: true,
       nodeIntegration: false,
@@ -64,14 +65,21 @@ export function createWindow (url='beaker:start') {
   win.loadURL(url)
   debug(`Opening ${url}`)
   activeWindows.push(win)
+  currentWindowIndex = activeWindows.length - 1
+
+  if (background) {
+    // open behind the current window
+    // TODO this isnt working
+    // let lastWin = activeWindows[currentWindowIndex]
+    // win.showInactive()
+    // if (lastWin) lastWin.focus()
+  }
 
   // create status-bar subwindow
+  var { x, y, width, height } = getStatusBarBounds(win)
   win.statusBarWin = new BrowserWindow({
     parent: win,
-    x,
-    y: (y + height - 24),
-    width: 400,
-    height: 24,
+    x, y, width, height,
     show: false,
     transparent: true,
     frame: false,
@@ -82,6 +90,8 @@ export function createWindow (url='beaker:start') {
 
   // register behaviors
   win.on('focus', onFocus(win))
+  win.on('move', onReposition(win))
+  win.on('resize', onReposition(win))
   win.on('page-title-updated', onPageTitleUpdated(win))
   win.on('close', onClose(win))
   win.webContents.on('new-window', onNewWindow(win))
@@ -177,6 +187,8 @@ export function showSwitcherWindow () {
 // =
 
 function setStatus (win, status) {
+  if (!win.statusBarWin) return
+
   if (!status) {
     // no status - if loading, show 'loading...'
     if (win.webContents.isLoading()) {
@@ -247,6 +259,16 @@ function ensureVisibleOnSomeDisplay (windowState) {
   return windowState
 }
 
+function getStatusBarBounds (win) {
+  var {x, y, width, height} = win.getBounds()
+  return {
+    x,
+    y: (y + height - 24),
+    width: 400,
+    height: 24,
+  }
+}
+
 function renderSwitcher () {  
   // construct info about the current state
   var processes = activeWindows.map(w => ({
@@ -272,6 +294,13 @@ function onFocus (win) {
   }
 }
 
+function onReposition (win) {
+  return e => {
+    if (!win.statusBarWin) return
+    win.statusBarWin.setBounds(getStatusBarBounds(win))
+  }
+}
+
 function onPageTitleUpdated (win) {
   return e => {
     e.preventDefault()
@@ -282,11 +311,7 @@ function onPageTitleUpdated (win) {
 function onNewWindow (win) {
   return (e, url, frameName, disposition) => {
     e.preventDefault()
-    var lastWin = activeWindows[currentWindowIndex]
-    createWindow(url)
-    if (disposition === 'background-tab' && lastWin) {
-      lastWin.focus()
-    }
+    createWindow(url, {background: disposition === 'background-tab'})
   }
 }
 
@@ -307,6 +332,12 @@ function onClose (win) {
     var i = activeWindows.findIndex(w => w == win)
     if (i !== -1) activeWindows.splice(i, 1)
     else console.error('Failed to splice out window from activeWindows')
+
+    // destroy statusbar
+    if (win.statusBarWin) {
+      win.statusBarWin.close()
+      win.statusBarWin = null
+    }
 
     // deny any outstanding permission requests
     permissions.denyAllRequests(win)
