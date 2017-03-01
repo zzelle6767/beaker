@@ -1,15 +1,19 @@
-<div id="navBarDiv">
-  <span class="vr"></span>
-  <span class="spacer"></span>
-  <span class="btn"><span class="icon icon-left-dir"></span></span>
-  <span class="btn disabled"><span class="icon icon-right-dir"></span></span>
-  <span class="btn"><span class="icon icon-cw"></span></span>
-  <span class="protocol"><span class="icon icon-lock"></span> Secure</span>
-  <span class="url">beaker:start</span>
-  <span class="tab selected"><img src="beaker-favicon:beaker:start">New tab</span>
-  <span class="tab"><img src="beaker-favicon:https://twitter.com">Twitter</span>
-  <span class="tab"><img src="beaker-favicon:https://news.ycombinator.com">What makes WebAssembly fast? - Hacker News</span>
-  <span class="tab"><img src="beaker-favicon:https://news.ycombinator.com">Hacker News</span>
+<div class="container">
+  <div id="navBarDiv">
+    <span class="vr"></span>
+    <span class="spacer"></span>
+    <span class="btn"><span class="icon icon-left-dir"></span></span>
+    <span class="btn disabled"><span class="icon icon-right-dir"></span></span>
+    <span class="btn"><span class="icon icon-cw"></span></span>
+    <span class="protocol"><span class="icon icon-lock"></span> Secure</span>
+    <span class="url">beaker:start</span>
+  </div>
+  <div id="tabsDiv">
+    <span class="tab selected"><img src="beaker-favicon:beaker:start">New tab</span>
+    <span class="tab"><img src="beaker-favicon:https://twitter.com">Twitter</span>
+    <span class="tab"><img src="beaker-favicon:https://news.ycombinator.com">What makes WebAssembly fast? - Hacker News</span>
+    <span class="tab"><img src="beaker-favicon:https://news.ycombinator.com">Hacker News</span>
+  </div>
 </div>
 
 <link rel="stylesheet" href="beaker:icons.css">
@@ -19,7 +23,14 @@ body {
   font-size: 11px;
   font-family: sans-serif;
 }
+.container {
+  display: flex;
+}
 #navBarDiv {
+  display: flex;
+  margin-top: 4px;
+}
+#tabsDiv {
   display: flex;
   margin-top: 4px;
 }
@@ -86,9 +97,8 @@ body {
 }
 .tab {
   box-sizing: border-box;
-  margin-top: -2px;
   padding: 2px 6px;
-  height: 18px;
+  height: 14px;
   margin-right: 4px;
 }
 .tab.selected {
@@ -103,7 +113,9 @@ body {
   display: inline-block;
   width: 12px;
   height: 12px;
+  margin-top: -2px;
   margin-right: 4px;
   vertical-align: middle;
 }
 </style>
+<script src="beaker:nav-bar.js"></script>

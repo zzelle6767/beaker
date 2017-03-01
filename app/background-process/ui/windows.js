@@ -64,8 +64,6 @@ export function createWindow (url='beaker:start', {background} = {}) {
   downloads.registerListener(win)
   win.loadURL(url)
   debug(`Opening ${url}`)
-  activeWindows.push(win)
-  currentWindowIndex = activeWindows.length - 1
 
   if (background) {
     // open behind the current window
@@ -135,6 +133,9 @@ export function createWindow (url='beaker:start', {background} = {}) {
     registerShortcut(win, 'CmdOrCtrl+'+i, onWindowSelect(win, i-1))
   registerShortcut(win, 'CmdOrCtrl+[', onGoBack(win))
   registerShortcut(win, 'CmdOrCtrl+]', onGoForward(win))
+
+  // track the window
+  addWindow(win)
 
   return win
 }
@@ -277,6 +278,15 @@ function getStatusBarBounds (win) {
   }
 }
 
+function addWindow (win) {
+  // add to tracking
+  activeWindows.push(win)
+  currentWindowIndex = activeWindows.length - 1
+
+  // update navbars
+  renderNavBars()
+}
+
 function renderSwitcher () {  
   // construct info about the current state
   var processes = activeWindows
@@ -291,6 +301,24 @@ function renderSwitcher () {
     setProcesses(${JSON.stringify(processes)})
     render()
   `)
+}
+
+function renderNavBars () {
+  // construct info about the current state
+  var tabs = activeWindows
+    .map(w => ({
+      title: w.webContents.getTitle(),
+      url: w.webContents.getURL()
+    }))
+  tabs = JSON.stringify(tabs)
+
+  // send data to the navbars
+  activeWindows.forEach(w => {
+    if (!w.navBarWin) return
+    w.navBarWin.webContents.executeJavaScript(`
+      setTabs(${tabs})
+    `)
+  })
 }
 
 // event handlers
@@ -321,6 +349,7 @@ function onPageTitleUpdated (win) {
   return e => {
     e.preventDefault()
     win.setTitle('')//win.webContents.getTitle() + ' - ' + win.webContents.getURL()) TODO remove?
+    renderNavBars()
   }
 }
 
@@ -345,6 +374,7 @@ function onLoadingStateChange (win) {
 
 function onClose (win) {
   return e => {
+    // stop tracking
     var i = activeWindows.findIndex(w => w == win)
     if (i !== -1) activeWindows.splice(i, 1)
     else console.error('Failed to splice out window from activeWindows')
@@ -366,6 +396,9 @@ function onClose (win) {
 
     // unregister shortcuts
     unregisterAllShortcuts(win)
+
+    // render
+    renderNavBars()
   }
 }
 
