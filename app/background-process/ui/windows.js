@@ -11,7 +11,6 @@ var debug = require('debug')('beaker')
 var userDataDir
 var currentWindowIndex = 0 // currently focused window
 var activeWindows = []
-var switcherWindow = null
 var isQuitting = false
 
 // exported methods
@@ -34,9 +33,6 @@ export function setup () {
   app.on('before-quit', () => {
     isQuitting = true
   })
-
-  // create the persistent switcher window
-  createSwitcherWindow()
 
   // create first shell window
   return createWindow()
@@ -140,42 +136,9 @@ export function createWindow (url='beaker:start', {background} = {}) {
   return win
 }
 
-export function createSwitcherWindow () {
-  if (switcherWindow) return
-
-  switcherWindow = new BrowserWindow({
-    frame: false,
-    show: false,
-    webPreferences: {
-      webSecurity: true,
-      nodeIntegration: false
-    },
-    icon: path.join(__dirname, (process.platform === 'win32') ? './assets/img/logo.ico' : './assets/img/logo.png')
-  })
-  switcherWindow.loadURL('beaker:switcher')
-
-  // register behaviors
-  switcherWindow.on('blur', onSwitcherBlur(switcherWindow))
-  switcherWindow.on('close', (e) => {
-    if (!isQuitting) {
-      // only hide unless we're quitting
-      e.preventDefault()
-      switcherWindow.hide()
-    }
-  })
-
-  // register shortcuts
-  registerShortcut(switcherWindow, 'Ctrl+Tab', onNextWindow(switcherWindow))
-  registerShortcut(switcherWindow, 'Ctrl+Shift+Tab', onNextWindow(switcherWindow, -1))
-}
 
 export function closeWindow (win) {
-  if (win === switcherWindow) {
-    // just hide
-    switcherWindow.hide()    
-  } else {
-    win.close()
-  }
+  win.close()
 }
 
 export function getActiveWindow () {
@@ -185,24 +148,6 @@ export function getActiveWindow () {
     win = BrowserWindow.getAllWindows().pop()
   }
   return win
-}
-
-export function showSwitcherWindow () {
-  // position on the screen
-  var bounds = getCurrentDisplay().bounds
-  var width = Math.min(1000, bounds.width - 100)
-  var height = Math.min(activeWindows.length * 40, bounds.height - 100)
-  switcherWindow.setContentBounds({
-    x: bounds.x + (bounds.width - width) / 2,
-    y: bounds.y + ((bounds.height - bounds.y) / 2) - height,
-    width,
-    height
-  })
-
-  // make visible
-  renderSwitcher()
-  switcherWindow.show()
-  switcherWindow.focus()
 }
 
 export function toggleAlwaysOnTop (win) {
@@ -237,7 +182,7 @@ function setStatus (win, status) {
 function getCurrentDisplay () {
   var display
   var currentWindow = BrowserWindow.getFocusedWindow()
-  if (currentWindow && currentWindow !== switcherWindow) {
+  if (currentWindow) {
     display = screen.getDisplayMatching(currentWindow.getBounds())
   }
   if (!display) {
@@ -285,22 +230,6 @@ function addWindow (win) {
 
   // update navbars
   renderNavBars()
-}
-
-function renderSwitcher () {  
-  // construct info about the current state
-  var processes = activeWindows
-    .map(w => ({
-      title: w.getTitle(),
-      url: w.webContents.getURL()
-    }))
-
-  // send data to the switcher
-  switcherWindow.webContents.executeJavaScript(`
-    setCurrent(${currentWindowIndex})
-    setProcesses(${JSON.stringify(processes)})
-    render()
-  `)
 }
 
 function renderNavBars () {
@@ -414,37 +343,24 @@ function onWindowSelect (win, winIndex) {
   }
 }
 
-function onNextWindow (win, direction=1) {
+function onNextWindow (win, dir) {
   return () => {
-    if (!switcherWindow.isFocused()) {
-      // show the switcher on first hit
-      showSwitcherWindow()
-    }
-    // cycle through active windows
-    currentWindowIndex += direction
-    if (currentWindowIndex < 0) {
-      currentWindowIndex += activeWindows.length
-    }
-    if (currentWindowIndex >= activeWindows.length) {
-      currentWindowIndex -= activeWindows.length
-    }
-    renderSwitcher()
+    // TODO
+    // currentWindowIndex += dir
+    // while (currentWindowIndex >= activeWindows.length) {
+    //   currentWindowIndex -= activeWindows.length
+    // }
+    // if (currentWindowIndex < 0) {
+    //   currentWindowIndex = 0
+    // }
+    // activeWindows[currentWindowIndex].focus()
   }
 }
+
 function onGoBack (win) {
   return () => win.webContents.goBack()
 }
 
 function onGoForward (win) {
   return () => win.webContents.goForward()
-}
-
-function onSwitcherBlur (win) {
-  return () => {
-    var winToFocus = activeWindows[currentWindowIndex]
-    if (winToFocus) {
-      winToFocus.show()
-      winToFocus.focus()
-    }
-  }
 }
