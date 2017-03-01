@@ -6,7 +6,7 @@ import pda from 'pauls-dat-api'
 import { BrowserWindow } from 'electron'
 import { BKR_SERVER_PORT } from '../lib/const'
 import * as datLibrary from './networks/dat/library'
-import { getActiveWindow, createWindow } from './ui/windows'
+import { openTab } from './ui/windows'
 import * as archivesDb from './dbs/archives'
 var packageJson = require('./package.json')
 var debug = require('debug')('beaker')
@@ -47,7 +47,7 @@ export function setup () {
   methods.openUrl = ([url]) => {
     if (!url || typeof url !== 'string') return Promise.reject({ code: 400, message: `Invalid url` })
     // make sure a window is open
-    createWindow(url)
+    openTab(url)
     return Promise.resolve()
   }
 

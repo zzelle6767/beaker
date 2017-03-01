@@ -1,5 +1,5 @@
 import { app, BrowserWindow, dialog } from 'electron'
-import { createWindow, closeWindow, toggleAlwaysOnTop } from './windows'
+import { createWindow, openTab, closeWindow } from './windows'
 
 var darwinMenu = {
   label: 'Beaker',
@@ -31,7 +31,7 @@ var fileMenu = {
         if (win) {
           dialog.showOpenDialog({ title: 'Open file...', properties: ['openFile', 'createDirectory'] }, files => {
             if (files && files[0]) {
-              createWindow('file://'+files[0])
+              openTab('file://'+files[0])
             }
           })
         }
@@ -134,7 +134,7 @@ var historyMenu = {
       label: 'Show Full History',
       accelerator: showHistoryAccelerator,
       click: function (item, win) {
-        createWindow('beaker:history')
+        openTab('beaker:history')
       }
     }
   ]
@@ -145,13 +145,6 @@ var windowMenu = {
   label: 'Window',
   role: 'window',
   submenu: [
-    {
-      type: 'checkbox',
-      label: 'Always on Top',
-      click: function (item, win) {
-        if (win) toggleAlwaysOnTop(win)
-      }
-    },
     {
       label: 'Minimize',
       accelerator: 'CmdOrCtrl+M',
@@ -185,19 +178,19 @@ var helpMenu = {
       label: 'Help',
       accelerator: 'F1',
       click: function (item, win) {
-        createWindow('https://beakerbrowser.com/docs/')
+        openTab('https://beakerbrowser.com/docs/')
       }
     },
     {
       label: 'Report Bug',
       click: function (item, win) {
-        createWindow('https://github.com/beakerbrowser/beaker/issues')
+        openTab('https://github.com/beakerbrowser/beaker/issues')
       }
     },
     {
       label: 'Mailing List',
       click: function (item, win) {
-        createWindow('https://groups.google.com/forum/#!forum/beaker-browser')
+        openTab('https://groups.google.com/forum/#!forum/beaker-browser')
       }
     }
   ]
@@ -208,7 +201,7 @@ if (process.platform !== 'darwin') {
     label: 'About',
     role: 'about',
     click: function (item, win) {
-      createWindow('beaker:settings')
+      openTab('beaker:settings')
     }
   })
 }
