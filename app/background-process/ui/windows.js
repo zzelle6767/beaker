@@ -47,6 +47,7 @@ export function createWindow (url='beaker:start', {background} = {}) {
   var win = new BrowserWindow(Object.assign(
     getWindowBounds(),
     {
+      fullscreenable: false,
       // show: !background, TODO this isnt working
       webPreferences: {
         webSecurity: true,
@@ -74,6 +75,27 @@ export function createWindow (url='beaker:start', {background} = {}) {
     // if (lastWin) lastWin.focus()
   }
 
+  // create nav-bar subwindow
+  win.navBarWin = new BrowserWindow(Object.assign(
+    getNavBarBounds(win),
+    {
+      parent: win,
+      show: false,
+      transparent: true,
+      frame: false,
+      focusable: false,
+      hasShadow: false,
+      movable: false,
+      resizable: false,
+      closable: false,
+      minimizable: false,
+      maximizable: false,
+      fullscreenable: false,
+      skipTaskbar: true
+    }
+  ))
+  win.navBarWin.loadURL('beaker:nav-bar')
+
   // create status-bar subwindow
   win.statusBarWin = new BrowserWindow(Object.assign(
     getStatusBarBounds(win),
@@ -83,7 +105,14 @@ export function createWindow (url='beaker:start', {background} = {}) {
       transparent: true,
       frame: false,
       focusable: false,
-      hasShadow: false
+      hasShadow: false,
+      movable: false,
+      resizable: false,
+      closable: false,
+      minimizable: false,
+      maximizable: false,
+      fullscreenable: false,
+      skipTaskbar: true
     }
   ))
   win.statusBarWin.loadURL('beaker:status-bar')
@@ -228,6 +257,16 @@ function getWindowBounds () {
   }
 }
 
+function getNavBarBounds (win) {
+  var {x, y, width, height} = win.getBounds()
+  return {
+    x: x + 85,
+    y,
+    width: width - 85,
+    height: 24,
+  }  
+}
+
 function getStatusBarBounds (win) {
   var {x, y, width, height} = win.getBounds()
   return {
@@ -281,7 +320,7 @@ function onReposition (win) {
 function onPageTitleUpdated (win) {
   return e => {
     e.preventDefault()
-    win.setTitle(win.webContents.getTitle() + ' - ' + win.webContents.getURL())
+    win.setTitle('')//win.webContents.getTitle() + ' - ' + win.webContents.getURL()) TODO remove?
   }
 }
 
@@ -309,6 +348,12 @@ function onClose (win) {
     var i = activeWindows.findIndex(w => w == win)
     if (i !== -1) activeWindows.splice(i, 1)
     else console.error('Failed to splice out window from activeWindows')
+
+    // destroy navbar
+    if (win.navBarWin) {
+      win.navBarWin.close()
+      win.navBarWin = null
+    }
 
     // destroy statusbar
     if (win.statusBarWin) {

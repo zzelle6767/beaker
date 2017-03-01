@@ -93,6 +93,12 @@ function beakerServer (req, res) {
   if (requestUrl === 'beaker:status-bar.js') {
     return cb(200, 'OK', 'application/javascript', path.join(__dirname, 'status-bar.js'))
   }
+  if (requestUrl === 'beaker:nav-bar') {
+    return cb(200, 'OK', 'text/html', path.join(__dirname, 'nav-bar.html'))
+  }
+  if (requestUrl === 'beaker:nav-bar.js') {
+    return cb(200, 'OK', 'application/javascript', path.join(__dirname, 'nav-bar.js'))
+  }
   if (requestUrl === 'beaker:icons.css') {
     return cb(200, 'OK', 'text/css', path.join(__dirname, 'stylesheets/icons.css'))
   }

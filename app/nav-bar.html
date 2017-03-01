@@ -1,0 +1,109 @@
+<div id="navBarDiv">
+  <span class="vr"></span>
+  <span class="spacer"></span>
+  <span class="btn"><span class="icon icon-left-dir"></span></span>
+  <span class="btn disabled"><span class="icon icon-right-dir"></span></span>
+  <span class="btn"><span class="icon icon-cw"></span></span>
+  <span class="protocol"><span class="icon icon-lock"></span> Secure</span>
+  <span class="url">beaker:start</span>
+  <span class="tab selected"><img src="beaker-favicon:beaker:start">New tab</span>
+  <span class="tab"><img src="beaker-favicon:https://twitter.com">Twitter</span>
+  <span class="tab"><img src="beaker-favicon:https://news.ycombinator.com">What makes WebAssembly fast? - Hacker News</span>
+  <span class="tab"><img src="beaker-favicon:https://news.ycombinator.com">Hacker News</span>
+</div>
+
+<link rel="stylesheet" href="beaker:icons.css">
+<style>
+body {
+  margin: 0;
+  font-size: 11px;
+  font-family: sans-serif;
+}
+#navBarDiv {
+  display: flex;
+  margin-top: 4px;
+}
+.spacer {
+  width: 16px;
+}
+.vr {
+  width: 1px;
+  height: 14px;
+  border-left: 1px solid #aaa;
+  margin-right: 6px;
+}
+.btn {
+  display: inline-block;
+  margin-right: 6px;
+  border-radius: 100%;
+  padding: 0;
+  height: 14px;
+  width: 14px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-sizing: border-box;
+  background-color: #2196f3;
+  position: relative;
+  outline: none;
+  color: rgba(255,255,255,0.85);
+}
+.btn.disabled {
+  background: #aaa;
+  color: rgba(255,255,255,0.5);
+}
+.btn .icon {
+  position: relative;
+  top: 0.5px;
+}
+.btn .icon-left-dir {
+  left: 3px;
+}
+.btn .icon-right-dir {
+  left: 4.5px;
+}
+.btn .icon-cw {
+  left: 1.5px;
+}
+.protocol,
+.url {
+  box-sizing: border-box;
+  padding: 2px 4px;
+  border: 1px solid #bbb;
+  background: #fff;
+  margin-top: -2px;
+  height: 18px;
+}
+.url {
+  margin-right: 2px;
+  width: 120px;
+  white-space: pre;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border-left-color: #ddd;
+}
+.protocol {
+  color: green;
+  border-right: 0;
+}
+.tab {
+  box-sizing: border-box;
+  margin-top: -2px;
+  padding: 2px 6px;
+  height: 18px;
+  margin-right: 4px;
+}
+.tab.selected {
+  background: #fff;
+  height: 20px;
+  border: 1px solid #aaa;
+  border-bottom: 0;
+  border-top-left-radius: 2px;
+  border-top-right-radius: 2px;
+}
+.tab img {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+</style>
