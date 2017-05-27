@@ -78,7 +78,7 @@ export function setup () {
   archiveSwarm = discoverySwarm(swarmDefaults({
     id: networkId,
     hash: false,
-    utp: true,
+    utp: false,
     tcp: true,
     stream: createReplicationStream
   }))
@@ -530,13 +530,11 @@ function createReplicationStream (info) {
   })
   stream.peerInfo = info
 
+console.log('GOT', info)
+
   // add the archive if the discovery network gave us any info
-  var dkey = info.discoveryKey || info.channel
-  if (!dkey && info.key) {
-    dkey = hypercore.discoveryKey(datEncoding.toBuf(info.key))
-  }
-  if (dkey) {
-    add(dkey)
+  if (info.channel) {
+    add(info.channel)
   }
 
   // add any requested archives
@@ -562,7 +560,7 @@ function createReplicationStream (info) {
     debug('new connection id=%s chan=%s type=%s host=%s key=%s', connId, chan, info.type, info.host, keyStrShort)
 
     // create the replication stream
-    archive.replicate({id: networkId, stream, live: true})
+    archive.replicate({stream, live: true})
     archive.replicationStreams.push(stream)
     stream.once('close', () => {
       var rs = archive.replicationStreams
@@ -578,6 +576,7 @@ function createReplicationStream (info) {
   //   stream.destroy(new Error('Timed out waiting for handshake'))
   // }, 5000)
   stream.once('handshake', () => {
+    console.log('handshake', arguments)
     debug('got handshake (%dms) id=%s type=%s host=%s', Date.now() - start, connId, info.type, info.host)
     // clearTimeout(TO)
   })
