@@ -100,6 +100,11 @@ function renderSidebar () {
         Dat network activity
       </div>
 
+      <div class="nav-item ${activeView === 'dat-import-export' ? 'active' : ''}" onclick=${() => onUpdateView('dat-import-export')}>
+        <i class="fa fa-angle-right"></i>
+        Import / export data
+      </div>
+
       <div class="nav-item ${activeView === 'information' ? 'active' : ''}" onclick=${() => onUpdateView('information')}>
         <i class="fa fa-angle-right"></i>
         Information & Help
@@ -113,6 +118,8 @@ function renderView () {
       return renderGeneral()
     case 'dat-network-activity':
       return renderDatNetworkActivity()
+    case 'dat-import-export':
+      return renderDatImportExport()
     case 'information':
       return renderInformation()
   }
@@ -156,6 +163,61 @@ function renderDatNetworkActivity () {
       </div>
     </div>
   `
+}
+
+function renderDatImportExport () {
+  return yo`
+    <div class="view">
+      <div class="section">
+        <h2 class="subtitle-heading">Import / export data</h2>
+        <div class="message error">
+          <i class="fa fa-exclamation-triangle"></i>
+          <div><strong>Warning!</strong> There are tricky parts to this. Read everything, and ask for help if you need it.</div>
+        </div>
+        <p>
+          Backup and transfer ownership of your Dat archives, private keys, and profile data.
+        </p>
+        <p>
+          <strong>Note.</strong> Only one computer can own your profile.
+          If you export your profile to another Beaker, then you shouldn${"'"}t keep using your profile on this computer.
+        </p>
+        <p>
+          To avoid problems, follow this guide:
+        </p>
+        <ol>
+          <li><strong class="ok"><i class="fa fa-check"></i> Backups</strong> <strong>Do</strong> export the profile and save it.</li>
+          <li><strong class="ok"><i class="fa fa-check"></i> Restores</strong> <strong>Do</strong> import saved profile to a new Beaker if the old Beaker has been reset or lost.</li>
+          <li><strong class="not-ok"><i class="fa fa-times"></i> Copies</strong> <strong>Never</strong> import profile into a new Beaker without resetting the old one.</li>
+        </ol>
+
+        <h2 class="subtitle-heading">Backup your profile</h2>
+        <p>
+          Export a .zip file containing all your Dat archives, private keys, and bookmarks.
+          If you are transfering to a new device, be sure to reset all data after export.
+        </p>
+        <p>
+          <a href="#" class="btn">Export profile</a>
+        </p>
+
+        <h2 class="subtitle-heading">Restore from backup</h2>
+        <p>
+          Import a .zip file containing all your Dat archives, private keys, and bookmarks.
+          This will not overwrite any existing data.
+        </p>
+        <p>
+          <a href="#" class="btn">Import profile</a>
+        </p>
+
+        <h2 class="subtitle-heading">Reset all data</h2>
+        <p>
+          Delete all Dat archives, private keys, and bookmarks. This is not reversable!
+        </p>
+        <p>
+          <a href="#" class="btn">Clear profile</a>
+        </p>
+      </div>
+    </div>
+  `  
 }
 
 function renderInformation () {

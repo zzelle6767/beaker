@@ -64,6 +64,32 @@
       text-decoration: none;
     }
   }
+
+  .ok, .not-ok {
+    display: inline-block;
+    width: 90px;
+
+    .fa {
+      width: 15px;
+      text-align: center;
+    }
+  }
+
+  .ok {
+    color: darken(@green, 15%);
+  }
+
+  .not-ok {
+    color: @red;
+  }
+
+  ol {
+    margin-bottom: 1em;
+
+    li {
+      margin-left: 10px;
+    }
+  }
 }
 
 ul.settings-section {
