@@ -29,6 +29,7 @@ import * as beakerProtocol from './background-process/protocols/beaker'
 import * as beakerFaviconProtocol from './background-process/protocols/beaker-favicon'
 import * as datProtocol from './background-process/protocols/dat'
 import * as workspaceProtocol from './background-process/protocols/workspace'
+import * as ipfsProtocol from './background-process/protocols/ipfs'
 
 // import * as profilesIngest from './background-process/ingests/profiles' TODO(profiles) disabled -prf
 
@@ -54,7 +55,7 @@ process.on('unhandledRejection', (reason, p) => {
 })
 
 // configure the protocols
-protocol.registerStandardSchemes(['dat', 'beaker', 'workspace'], { secure: true })
+protocol.registerStandardSchemes(['dat', 'beaker', 'workspace', 'ipfs'], { secure: true })
 
 // handle OS event to open URLs
 app.on('open-url', (e, url) => {
@@ -90,6 +91,7 @@ app.on('ready', async function () {
   beakerFaviconProtocol.setup()
   datProtocol.setup()
   workspaceProtocol.setup()
+  ipfsProtocol.setup()
 
   // configure chromium's permissions for the protocols
   protocol.registerServiceWorkerSchemes(['dat', 'workspace'])

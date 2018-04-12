@@ -5,6 +5,8 @@ import EventEmitter from 'events'
 import path from 'path'
 import fs from 'fs'
 import parseDatURL from 'parse-dat-url'
+import multibase from 'multibase'
+import bs58 from 'bs58'
 import * as zoom from './pages/zoom'
 import * as navbar from './ui/navbar'
 import * as prompt from './ui/prompt'
@@ -192,6 +194,17 @@ export function create (opts) {
       // reset some state
       page.isReceivingAssets = false
       page.siteInfoOverride = null
+
+      // correct ipfs url encodings
+      if (url.startsWith('ipfs://')) {
+        let urlp = (url.slice('ipfs://'.length)).split('/')
+        try {
+          console.log('converting', urlp[0])
+          urlp[0] = multibase.encode('base32', bs58.decode(urlp[0]))
+          console.log('got', urlp[0])
+        } catch (e) {console.error(e)}
+        url = 'ipfs://' + urlp.join('/')
+      }
 
       // set and go
       page.loadingURL = url
