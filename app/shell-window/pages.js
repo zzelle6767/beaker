@@ -199,9 +199,7 @@ export function create (opts) {
       if (url.startsWith('ipfs://')) {
         let urlp = (url.slice('ipfs://'.length)).split('/')
         try {
-          console.log('converting', urlp[0])
           urlp[0] = multibase.encode('base32', bs58.decode(urlp[0]))
-          console.log('got', urlp[0])
         } catch (e) {console.error(e)}
         url = 'ipfs://' + urlp.join('/')
       }
