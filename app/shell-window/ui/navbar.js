@@ -7,6 +7,7 @@ import * as yo from 'yo-yo'
 import prettyHash from 'pretty-hash'
 import {UpdatesNavbarBtn} from './navbar/updates'
 import {BrowserMenuNavbarBtn} from './navbar/browser-menu'
+import {NewSiteMenuNavbarBtn} from './navbar/new-site-menu'
 // import {AppsMenuNavbarBtn} from './navbar/apps-menu' TODO(apps) restore when we bring back apps -prf
 import {DatsiteMenuNavbarBtn} from './navbar/datsite-menu'
 import {SyncfolderMenuNavbarBtn} from './navbar/syncfolder-menu'
@@ -34,6 +35,7 @@ const isDatHashRegex = /^[a-z0-9]{64}/i
 var toolbarNavDiv = document.getElementById('toolbar-nav')
 var updatesNavbarBtn = null
 var browserMenuNavbarBtn = null
+var newSiteMenuNavbarBtn = null
 var bookmarkMenuNavbarBtn = null
 // var appsMenuNavbarBtn = null TODO(apps) restore when we bring back apps -prf
 var datsiteMenuNavbarBtn = null
@@ -56,6 +58,7 @@ export function setup () {
   updatesNavbarBtn = new UpdatesNavbarBtn()
   // appsMenuNavbarBtn = new AppsMenuNavbarBtn() TODO(apps) restore when we bring back apps -prf
   browserMenuNavbarBtn = new BrowserMenuNavbarBtn()
+  newSiteMenuNavbarBtn = new NewSiteMenuNavbarBtn()
   bookmarkMenuNavbarBtn = new BookmarkMenuNavbarBtn()
   datsiteMenuNavbarBtn = new DatsiteMenuNavbarBtn()
   syncfolderMenuNavbarBtn = new SyncfolderMenuNavbarBtn()
@@ -156,8 +159,8 @@ export function bookmarkAndOpenMenu () {
 }
 
 export function closeMenus () {
-  browserMenuNavbarBtn.isDropdownOpen = false
-  browserMenuNavbarBtn.updateActives()
+  browserMenuNavbarBtn.close()
+  newSiteMenuNavbarBtn.close()
   // appsMenuNavbarBtn.close() TODO(apps) restore when we bring back apps -prf
   pageMenuNavbarBtn.close()
   bookmarkMenuNavbarBtn.close()
@@ -404,6 +407,7 @@ function render (id, page) {
           pageMenuNavbarBtn.render(),
           bookmarkMenuNavbarBtn.render()
         ] : ''}
+        ${newSiteMenuNavbarBtn.render()}
       </div>
       <div class="toolbar-group">
         ${''/*appsMenuNavbarBtn.render() TODO(apps) restore when we bring back apps -prf*/}

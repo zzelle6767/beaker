@@ -230,6 +230,14 @@ export class BrowserMenuNavbarBtn {
     )
   }
 
+  close () {
+    if (this.isDropdownOpen) {
+      this.isDropdownOpen = false
+      this.submenu = ''
+      this.updateActives()
+    }
+  }
+
   onShowSubmenu(submenu) {
     this.submenu = submenu
     this.updateActives()
@@ -262,11 +270,7 @@ export class BrowserMenuNavbarBtn {
   onClickAnywhere (e) {
     var parent = findParent(e.target, 'browser-dropdown-menu')
     if (parent) return // abort - this was a click on us!
-    if (this.isDropdownOpen) {
-      this.isDropdownOpen = false
-      this.submenu = ''
-      this.updateActives()
-    }
+    this.close()
   }
 
   onClickDownloads (e) {
