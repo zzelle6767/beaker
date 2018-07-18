@@ -76,6 +76,30 @@ const STEPS = [
     }
   },
   {
+    title: 'Help us know how we\'re doing!',
+    subtitle: 'Configure Beaker stats',
+    description: 'Ping us once a week to be counted in the community.',
+    content: () => yo`
+      <div>
+        <img class="icon" src="beaker://assets/img/onboarding/community.svg" />
+
+        <div>
+          <label class="toggle">
+            <input checked=${settings.analytics_enabled == 1 ? 'true' : 'false'} type="checkbox" onchange=${toggleAnalytics} />
+
+            <div class="switch"></div>
+            <span class="text">
+              Enable anonymous ping
+            </span>
+          </label>
+        </div>
+      </div>`,
+    color: 'blue',
+    onLeave: async () => {
+      await beaker.browser.setSetting('analytics_enabled', settings.analytics_enabled)
+    }
+  },
+  {
     title: 'Get started',
     subtitle: 'Start exploring the peer-to-peer Web',
     description: '',
@@ -310,6 +334,10 @@ function onToggleDefaultBrowser (e) {
 
 function onKeyupDirectory (e) {
   settings.workspace_default_path = e.target.value
+}
+
+function toggleAnalytics () {
+  settings.analytics_enabled = (settings.analytics_enabled == 1) ? 0 : 1
 }
 
 async function onSelectDirectory (e) {
