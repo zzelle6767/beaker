@@ -12,6 +12,7 @@ import toggleable from '../com/toggleable'
 import * as createArchivePopup from '../com/create-archive-popup'
 import * as contextMenu from '../com/context-menu'
 import renderCloseIcon from '../icon/close'
+import {createDiskUsageChart} from '../com/rez-usage/disk'
 
 // globals
 // =
@@ -239,32 +240,7 @@ function render () {
 
         <div class="builtin-main">
           ${renderSidebar()}
-
-          <div>
-            ${archives.length
-              ? yo`
-                <div class="ll-column-headings">
-                  ${renderColumnHeading({cls: 'title', sort: 'alpha', label: 'Title'})}
-                  ${renderColumnHeading({cls: 'peers', sort: 'peers', label: 'Peers'})}
-                  ${renderColumnHeading({cls: 'date', sort: `recently-${currentDateType}`, label: `Last ${currentDateType}`})}
-                  ${renderColumnHeading({cls: 'size', sort: 'size', label: 'Size'})}
-                  <span class="buttons"></span>
-                </div>`
-              : ''
-            }
-
-            ${renderRows()}
-
-            ${!query
-              ? yo`
-                <p class="builtin-hint">
-                  Your Library contains websites and archives you've created,
-                  along with websites that you're seeding.
-                  <i class="fa fa-question-circle-o"></i>
-                </p>`
-              : ''
-            }
-          </div>
+          ${renderView()}
         </div>
       </div>
     `
@@ -300,6 +276,45 @@ function renderSidebar () {
           Trash
         </div>
       </div>
+
+      <div class="section nav">
+        <div onclick=${() => onUpdateView('resource-usage')} class="nav-item ${currentView === 'resource-usage' ? 'active' : ''}">
+          <i class="fa fa-angle-right"></i>
+          Resource usage
+        </div>
+      </div>
+    </div>`
+}
+
+function renderView () {
+  if (currentView === 'resource-usage') {
+    return renderResourceUsageView()
+  }
+  return yo`
+    <div>
+      ${archives.length
+        ? yo`
+          <div class="ll-column-headings">
+            ${renderColumnHeading({cls: 'title', sort: 'alpha', label: 'Title'})}
+            ${renderColumnHeading({cls: 'peers', sort: 'peers', label: 'Peers'})}
+            ${renderColumnHeading({cls: 'date', sort: `recently-${currentDateType}`, label: `Last ${currentDateType}`})}
+            ${renderColumnHeading({cls: 'size', sort: 'size', label: 'Size'})}
+            <span class="buttons"></span>
+          </div>`
+        : ''
+      }
+
+      ${renderRows()}
+
+      ${!query
+        ? yo`
+          <p class="builtin-hint">
+            Your Library contains websites and archives you've created,
+            along with websites that you're seeding.
+            <i class="fa fa-question-circle-o"></i>
+          </p>`
+        : ''
+      }
     </div>`
 }
 
@@ -462,6 +477,13 @@ function removeFromLibraryLabel (archive) {
 
 function removeFromLibraryIcon (archive) {
   return (archive.isOwner) ? 'trash' : 'pause'
+}
+
+function renderResourceUsageView () {
+  return yo`
+    <div>
+      <div id="chart"></div>
+    </div>`
 }
 
 // events
@@ -741,6 +763,9 @@ async function onUpdateView (view) {
   if (view === 'recent') {
     // sort by recently viewed, dont save (temporary for this view)
     onUpdateSort('recently-accessed', -1, {noSave: true})
+  }
+  if (view === 'resource-usage') {
+    createDiskUsageChart('#chart', archives)
   }
 
   // focus the search input

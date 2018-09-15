@@ -125,6 +125,15 @@ async function beakerProtocol (request, respond) {
   if (requestUrl === 'beaker://assets/font-source-sans-pro-le') {
     return cb(200, 'OK', 'application/font-woff2', path.join(__dirname, 'assets/fonts/source-sans-pro-le.woff2'))
   }
+  if (requestUrl === 'beaker://assets/c3.min.css') {
+    return cb(200, 'OK', 'text/css; charset=utf-8', path.join(__dirname, 'assets/css/c3-0.6.7.min.css'))
+  }
+  if (requestUrl === 'beaker://assets/c3.min.js') {
+    return cb(200, 'OK', 'application/javascript; charset=utf-8', path.join(__dirname, 'assets/js/c3-0.6.7.min.js'))
+  }
+  if (requestUrl === 'beaker://assets/d3.min.js') {
+    return cb(200, 'OK', 'application/javascript; charset=utf-8', path.join(__dirname, 'assets/js/d3-5.7.0.min.js'))
+  }
   if (requestUrl.startsWith('beaker://assets/logo2')) {
     return cb(200, 'OK', 'image/png', path.join(__dirname, 'assets/img/logo2.png'))
   }
