@@ -233,5 +233,15 @@ export default {
     alwaysDisallow: false,
     requiresRefresh: false,
     experimental: true
+  },
+  experimentalPeerSocket: {
+    desc: 'Send and receive messages with peers',
+    icon: 'exchange',
+    persist: true,
+    idempotent: true,
+    alwaysAllow: false,
+    alwaysDisallow: false,
+    requiresRefresh: false,
+    experimental: true
   }
 }
