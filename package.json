@@ -2,7 +2,7 @@
   "bin": "./tasks/start-cli.js",
   "name": "beakerbrowser",
   "devDependencies": {
-    "browserify": "^13.0.1",
+    "browserify": "^16.5.1",
     "electron": "2.0.8",
     "electron-builder": "~20.8.0",
     "eslint": "^6.1.0",
